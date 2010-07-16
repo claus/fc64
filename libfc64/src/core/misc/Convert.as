@@ -20,33 +20,42 @@
 
 package core.misc
 {
+	
 	public class Convert
 	{
-		public static function toHex(value:uint, len:uint = 2):String {
-			var hex:String = value.toString(16);
-			if(hex.length < len) {
+		public static function toHex( value:uint, len:uint = 2 ):String
+		{
+			var hex:String = value.toString( 16 );
+			if ( hex.length < len )
+			{
 				var zeros:String = "0000000";
-				hex = zeros.substr(0, len - hex.length) + hex;
+				hex = zeros.substr( 0, len - hex.length ) + hex;
 			}
 			return hex.toUpperCase();
 		}
-
-		public static function toBin(value:uint, len:uint = 8):String {
-			var bin:String = value.toString(2);
-			if(bin.length < len) {
+		
+		public static function toBin( value:uint, len:uint = 8 ):String
+		{
+			var bin:String = value.toString( 2 );
+			if ( bin.length < len )
+			{
 				var zeros:String = "000000000000000";
-				bin = zeros.substr(0, len - bin.length) + bin;
+				bin = zeros.substr( 0, len - bin.length ) + bin;
 			}
 			return bin;
 		}
-
-		public static function toBCD(value:uint):int {
-			if(value < 10) {
+		
+		public static function toBCD( value:uint ):int
+		{
+			if ( value < 10 )
+			{
 				return value;
-			} else {
+			}
+			else
+			{
 				var s:String = value.toString();
 				var i:int = s.length - 1;
-				return(((s.charCodeAt(i-1) - 48) << 4) | (s.charCodeAt(i) - 48));
+				return ( ( ( s.charCodeAt( i - 1 ) - 48 ) << 4 ) | ( s.charCodeAt( i ) - 48 ) );
 			}
 		}
 	}

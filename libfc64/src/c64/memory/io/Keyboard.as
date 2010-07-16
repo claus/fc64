@@ -35,22 +35,22 @@ package c64.memory.io
 		/** 64 bit mask indicating what keys are down */
 		private var keyBits:Array; // of 2 int values
 		
-		/** 
-		 * Map of the key to it's value in the matrix: 
+		/**
+		 * Map of the key to it's value in the matrix:
 		 * http://sta.c64.org/cbm64kbdlay.html
 		 */
 		private var keyMatrixLocations:Array; // Array of 2 int values (row, col)
-		 
+		
 		private var keyMaskColumns:ByteArray;
-
+		
 		private var joystickMask:uint;
-
+		
 		private var shiftDown:Boolean;
 		
 		private var _enabled:Boolean = false;
 		
 		private var listenerTarget:DisplayObject;
-
+		
 		
 		/**
 		 * Constructor
@@ -67,30 +67,38 @@ package c64.memory.io
 		
 		/**
 		 * Initialization
-		 * 
+		 *
 		 * @param cpu The CPU that an NMI can be triggered on
 		 * @param listenerTarget The area to listen to for key press/release events
 		 */
-		public function initialize(cpu:CPU6502, listenerTarget:DisplayObject):void 
+		public function initialize( cpu:CPU6502, listenerTarget:DisplayObject ):void
 		{
 			enabled = false;
 			this.cpu = cpu;
 			this.listenerTarget = listenerTarget;
 		}
-
-		public function get enabled():Boolean {
+		
+		public function get enabled():Boolean
+		{
 			return _enabled;
 		}
-		public function set enabled(value:Boolean):void {
-			if(_enabled != value) {
+		
+		public function set enabled( value:Boolean ):void
+		{
+			if ( _enabled != value )
+			{
 				_enabled = value;
-				if(listenerTarget != null) {
-					if(_enabled) {
-						listenerTarget.addEventListener(KeyboardEvent.KEY_DOWN, keyDown, false, 0, true);
-						listenerTarget.addEventListener(KeyboardEvent.KEY_UP, keyUp, false, 0, true);
-					} else {
-						listenerTarget.removeEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-						listenerTarget.removeEventListener(KeyboardEvent.KEY_UP, keyUp);
+				if ( listenerTarget != null )
+				{
+					if ( _enabled )
+					{
+						listenerTarget.addEventListener( KeyboardEvent.KEY_DOWN, keyDown, false, 0, true );
+						listenerTarget.addEventListener( KeyboardEvent.KEY_UP, keyUp, false, 0, true );
+					}
+					else
+					{
+						listenerTarget.removeEventListener( KeyboardEvent.KEY_DOWN, keyDown );
+						listenerTarget.removeEventListener( KeyboardEvent.KEY_UP, keyUp );
 					}
 				}
 			}
@@ -99,10 +107,10 @@ package c64.memory.io
 		/**
 		 * Returns a byte value representing the rows in the keyboard
 		 * matrix with pressed keys
-		 * 
+		 *
 		 * @param columns Byte value representing the selected columns
 		 */
-		public function getRows( columns:int ):int 
+		public function getRows( columns:int ):int
 		{
 			var rows:int = 0x00;
 			
@@ -121,12 +129,12 @@ package c64.memory.io
 			
 			return ~rows & 0xFF;
 		}
-
-		public function getJoystick2():int 
+		
+		public function getJoystick2():int
 		{
 			return ~joystickMask & 0xFF;
 		}
-
+		
 		private function initializeKeyMatrixLocations():void
 		{
 			keyMatrixLocations = new Array();
@@ -170,7 +178,7 @@ package c64.memory.io
 			keyMatrixLocations[ 0x37 ] = [ 0, 3 ]; // 7
 			keyMatrixLocations[ 0x38 ] = [ 3, 3 ]; // 8
 			keyMatrixLocations[ 0x39 ] = [ 0, 4 ]; // 9
-						
+			
 			keyMatrixLocations[ 0xDE ] = [ 5, 5 ]; // : (mapped on '~' key)
 			keyMatrixLocations[ 0xBA ] = [ 2, 6 ]; // ;
 			keyMatrixLocations[ 0xBB ] = [ 5, 6 ]; // =
@@ -203,11 +211,11 @@ package c64.memory.io
 			keyMatrixLocations[ flash.ui.Keyboard.F7 ] = [ 3, 0 ];
 		}
 		
-		private function keyDown( event:KeyboardEvent ):void 
+		private function keyDown( event:KeyboardEvent ):void
 		{
 			var keyCode:int = event.keyCode;
-
-			switch(keyCode)
+			
+			switch ( keyCode )
 			{
 				case flash.ui.Keyboard.PAGE_UP:
 					cpu.NMI();
@@ -230,12 +238,12 @@ package c64.memory.io
 				case flash.ui.Keyboard.SPACE:
 					joystickMask |= 0x10;
 					break;
-			}			
+			}
 			
-			if ( keyMatrixLocations[ keyCode ] != null ) 
+			if ( keyMatrixLocations[ keyCode ] != null )
 			{
 				var keyMatrixItem:Array = keyMatrixLocations[ keyCode ];
-	
+				
 				// Get the row/column location of the key in the matrix
 				var row:int = keyMatrixItem[ 0 ];
 				var column:int = keyMatrixItem[ 1 ];
@@ -245,11 +253,11 @@ package c64.memory.io
 			}
 		}
 		
-		private function keyUp( event:KeyboardEvent ):void 
+		private function keyUp( event:KeyboardEvent ):void
 		{
 			var keyCode:int = event.keyCode;
 			
-			switch(keyCode)
+			switch ( keyCode )
 			{
 				case flash.ui.Keyboard.SHIFT:
 					shiftDown = false;
@@ -269,9 +277,9 @@ package c64.memory.io
 				case flash.ui.Keyboard.SPACE:
 					joystickMask &= ~0x10;
 					break;
-			}			
+			}
 			
-			if ( keyMatrixLocations[ keyCode ] != null ) 
+			if ( keyMatrixLocations[ keyCode ] != null )
 			{
 				// Get the row/column location of the key in the matrix
 				var row:int = keyMatrixLocations[ keyCode ][ 0 ];

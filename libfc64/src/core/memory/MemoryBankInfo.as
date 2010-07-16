@@ -20,15 +20,19 @@
 
 package core.memory
 {
+	
 	public class MemoryBankInfo
 	{
 		public var image:Object;
+		
 		public var baseAddress:uint;
+		
 		public var length:uint;
-
+		
 		public var readAccess:Boolean;
+		
 		public var writeAccess:Boolean;
-
+		
 		public function MemoryBankInfo( image:Object, baseAddress:uint = 0, length:uint = 0 )
 		{
 			this.image = image;

@@ -17,15 +17,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package core.memory.io
 {
+	
 	public class IOHandlerInfo
 	{
 		public var getter:Function;
+		
 		public var setter:Function;
-
-		public function IOHandlerInfo(getter:Function = null, setter:Function = null)
+		
+		public function IOHandlerInfo( getter:Function = null, setter:Function = null )
 		{
 			this.getter = getter;
 			this.setter = setter;

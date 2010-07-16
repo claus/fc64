@@ -20,15 +20,20 @@
 
 package core.cpu
 {
+	
 	public class CPUOpcodeInfo
 	{
 		public var cycles:uint;
+		
 		public var len:uint;
+		
 		public var handler:Function;
+		
 		public var addr:Function;
+		
 		public var mnemo:String;
-
-		public function CPUOpcodeInfo(cycles:uint, len:uint, handler:Function, addr:Function, mnemo:String)
+		
+		public function CPUOpcodeInfo( cycles:uint, len:uint, handler:Function, addr:Function, mnemo:String )
 		{
 			this.cycles = cycles;
 			this.len = len;

@@ -20,13 +20,14 @@
 
 package core.memory
 {
+	
 	public interface IMemoryManager
 	{
-		function read(address:uint):int;
-		function readWord(address:uint):int;
-		function readStack(sp:uint):int;
-		function write(address:uint, value:int):void;
-		function writeWord(address:uint, value:int):void;
-		function writeStack(sp:uint, value:int):void;
+		function read( address:uint ):int;
+		function readWord( address:uint ):int;
+		function readStack( sp:uint ):int;
+		function write( address:uint, value:int ):void;
+		function writeWord( address:uint, value:int ):void;
+		function writeStack( sp:uint, value:int ):void;
 	}
 }

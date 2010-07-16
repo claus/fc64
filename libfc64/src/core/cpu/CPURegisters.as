@@ -21,25 +21,36 @@
 package core.cpu
 {
 	import core.misc.Convert;
-
+	
 	public class CPURegisters
 	{
 		public var a:int;
+		
 		public var x:int;
+		
 		public var y:int;
+		
 		public var p:int;
+		
 		public var sp:int;
+		
 		public var pc:int;
-
+		
 		public var carryFlag:Boolean;
+		
 		public var zeroFlag:Boolean;
+		
 		public var irqDisableFlag:Boolean;
+		
 		public var decimalModeFlag:Boolean;
+		
 		public var breakFlag:Boolean;
+		
 		public var overflowFlag:Boolean;
+		
 		public var negativeFlag:Boolean;
-
-		public function CPURegisters(a:int, x:int, y:int, p:int, sp:int, pc:int)
+		
+		public function CPURegisters( a:int, x:int, y:int, p:int, sp:int, pc:int )
 		{
 			this.a = a;
 			this.x = x;
@@ -48,40 +59,43 @@ package core.cpu
 			this.sp = sp;
 			this.pc = pc;
 			
-			carryFlag = (p & 0x01) != 0;
-			zeroFlag = (p & 0x02) != 0;
-			irqDisableFlag = (p & 0x04) != 0;
-			decimalModeFlag = (p & 0x08) != 0;
-			breakFlag = (p & 0x10) != 0;
-			overflowFlag = (p & 0x40) != 0;
-			negativeFlag = (p & 0x80) != 0;
+			carryFlag = ( p & 0x01 ) != 0;
+			zeroFlag = ( p & 0x02 ) != 0;
+			irqDisableFlag = ( p & 0x04 ) != 0;
+			decimalModeFlag = ( p & 0x08 ) != 0;
+			breakFlag = ( p & 0x10 ) != 0;
+			overflowFlag = ( p & 0x40 ) != 0;
+			negativeFlag = ( p & 0x80 ) != 0;
 		}
 		
-		public function toString():String {
+		public function toString():String
+		{
 			return toStringRegisters() + "\n" + toStringFlags();
 		}
-
-		public function toStringRegisters():String {
+		
+		public function toStringRegisters():String
+		{
 			var d:String = "";
-			d += "a:" + Convert.toHex(a) + " ";
-			d += "x:" + Convert.toHex(x) + " ";
-			d += "y:" + Convert.toHex(y) + " ";
-			d += "p:" + Convert.toHex(p) + " ";
-			d += "sp:" + Convert.toHex(sp) + " ";
-			d += "pc:" + Convert.toHex(pc, 4);
+			d += "a:" + Convert.toHex( a ) + " ";
+			d += "x:" + Convert.toHex( x ) + " ";
+			d += "y:" + Convert.toHex( y ) + " ";
+			d += "p:" + Convert.toHex( p ) + " ";
+			d += "sp:" + Convert.toHex( sp ) + " ";
+			d += "pc:" + Convert.toHex( pc, 4 );
 			return "[" + d.toUpperCase() + "]";
 		}
-
-		public function toStringFlags():String {
+		
+		public function toStringFlags():String
+		{
 			var d:String = "";
-			d += "p:" + Convert.toBin(p) + " ";
-			d += "n:" + (negativeFlag ? 1 : 0) + " ";
-			d += "v:" + (overflowFlag ? 1 : 0) + " ";
-			d += "b:" + (breakFlag ? 1 : 0) + " ";
-			d += "d:" + (decimalModeFlag ? 1 : 0) + " ";
-			d += "i:" + (irqDisableFlag ? 1 : 0) + " ";
-			d += "z:" + (zeroFlag ? 1 : 0) + " ";
-			d += "c:" + (carryFlag ? 1 : 0);
+			d += "p:" + Convert.toBin( p ) + " ";
+			d += "n:" + ( negativeFlag ? 1 : 0 ) + " ";
+			d += "v:" + ( overflowFlag ? 1 : 0 ) + " ";
+			d += "b:" + ( breakFlag ? 1 : 0 ) + " ";
+			d += "d:" + ( decimalModeFlag ? 1 : 0 ) + " ";
+			d += "i:" + ( irqDisableFlag ? 1 : 0 ) + " ";
+			d += "z:" + ( zeroFlag ? 1 : 0 ) + " ";
+			d += "c:" + ( carryFlag ? 1 : 0 );
 			return "[" + d.toUpperCase() + "]";
 		}
 	}

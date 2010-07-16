@@ -25,33 +25,41 @@ package core.memory.io
 	import flash.errors.IllegalOperationError;
 	import core.memory.io.IOHandlerInfo;
 	import core.misc.Convert;
-
+	
 	public dynamic class IOHandler extends Proxy
 	{
 		protected var arr:ByteArray;
+		
 		protected var handlers:Array;
+		
 		protected var maskAddress:uint;
+		
 		protected var debug:Boolean;
-
+		
 		protected var cname:String;
+		
 		protected var cbase:String;
-
+		
 		static protected var props:Object;
-	
-		public function IOHandler(debugFlag:Boolean = false) {
-			var info:XML = describeType(this);
-			cname = info.@name.toString().split("::")[1];
-			cbase = info.@base.toString().split("::")[1];
+		
+		public function IOHandler( debugFlag:Boolean = false )
+		{
+			var info:XML = describeType( this );
+			cname = info.@name.toString().split( "::" )[ 1 ];
+			cbase = info.@base.toString().split( "::" )[ 1 ];
 			debug = debugFlag;
-			if(props === null) {
-				var d:XMLDocument = new XMLDocument(describeType(arr).toXMLString());
+			if ( props === null )
+			{
+				var d:XMLDocument = new XMLDocument( describeType( arr ).toXMLString() );
 				var n:XMLNode = d.firstChild.firstChild;
 				props = {};
-				while(n) {
-					if(props[n.nodeName] == undefined) {
-						props[n.nodeName] = {};
+				while ( n )
+				{
+					if ( props[ n.nodeName ] == undefined )
+					{
+						props[ n.nodeName ] = {};
 					}
-					props[n.nodeName][n.attributes.name] = {};
+					props[ n.nodeName ][ n.attributes.name ] = {};
 					n = n.nextSibling;
 				}
 			}
@@ -68,77 +76,103 @@ package core.memory.io
 			// (see get/set/callProperty methods)
 			maskAddress = 0xffff;
 			var hlen:uint = handlers.length - 1;
-			while((hlen & (maskAddress >> 1)) == hlen) {
+			while ( ( hlen & ( maskAddress >> 1 ) ) == hlen )
+			{
 				maskAddress >>= 1;
 			}
 			// fill up handler array
 			// to ensure we have handlers for all registers
-			for(var i:uint = hlen + 1; i <= maskAddress; i++) {
-				handlers.push(new IOHandlerInfo(getDefault, setDefault));
+			for ( var i:uint = hlen + 1; i <= maskAddress; i++ )
+			{
+				handlers.push( new IOHandlerInfo( getDefault, setDefault ) );
 			}
 			// set length of memory bytearray
 			arr.length = maskAddress + 1;
 		}
 		
-		public function setDebug(value:Boolean):void {
+		public function setDebug( value:Boolean ):void
+		{
 			debug = value;
 		}
-
-		public function getDebug():Boolean {
+		
+		public function getDebug():Boolean
+		{
 			return debug;
 		}
-
-		protected function debugMessage(message:String):void {
-			trace(message);
+		
+		protected function debugMessage( message:String ):void
+		{
+			trace( message );
 		}
-
+		
 		/**
-		* Initialize handlers table
-		* (the table is an array of IOHandlerInfo objects)
-		* This should be a "virtual" function (is that possible in AS3?).
-		* It should be overwritten by subclasses.
-		*/
-		protected function initHandlers():void {
+		 * Initialize handlers table
+		 * (the table is an array of IOHandlerInfo objects)
+		 * This should be a "virtual" function (is that possible in AS3?).
+		 * It should be overwritten by subclasses.
+		 */
+		protected function initHandlers():void
+		{
 			handlers = [];
 		}
 		
-		protected function getDefault(index:int):int {
-			if(debug) debugMessage("[" + cname + "] get " + Convert.toHex(index) + ": #$" + Convert.toHex(arr[index]));
-			return arr[index];
+		protected function getDefault( index:int ):int
+		{
+			if ( debug )
+				debugMessage( "[" + cname + "] get " + Convert.toHex( index ) + ": #$" + Convert.toHex( arr[ index ] ) );
+			return arr[ index ];
 		}
-
-		protected function setDefault(index:int, value:int):void {
-			if(debug) debugMessage("[" + cname + "] set " + Convert.toHex(index) + ": #$" + Convert.toHex(value));
-			arr[index] = value;
+		
+		protected function setDefault( index:int, value:int ):void
+		{
+			if ( debug )
+				debugMessage( "[" + cname + "] set " + Convert.toHex( index ) + ": #$" + Convert.toHex( value ) );
+			arr[ index ] = value;
 		}
-
-		flash_proxy override function setProperty(name:*, value:*):void {
-			var index:int = parseInt(name) & maskAddress;
-			if(!isNaN(index)) {
-				IOHandlerInfo(handlers[index]).setter(index, value);
-			} else if(props.accessor[name] != undefined) {
-				arr[name.toString()] = value;
-			} else {
-				throw new IllegalOperationError("Error: Access of undefined property " + name.toString() + " through a reference with static type " + cname);
+		
+		flash_proxy override function setProperty( name:*, value:* ):void
+		{
+			var index:int = parseInt( name ) & maskAddress;
+			if ( !isNaN( index ) )
+			{
+				IOHandlerInfo( handlers[ index ] ).setter( index, value );
+			}
+			else if ( props.accessor[ name ] != undefined )
+			{
+				arr[ name.toString() ] = value;
+			}
+			else
+			{
+				throw new IllegalOperationError( "Error: Access of undefined property " + name.toString() + " through a reference with static type " + cname );
 			}
 		}
-
-		flash_proxy override function getProperty(name:*):* {
-			var index:int = parseInt(name) & maskAddress;
-			if(!isNaN(index)) {
-				return IOHandlerInfo(handlers[index]).getter(index);
-			} else if(props.accessor[name] != undefined) {
-				return arr[name.toString()];
-			} else {
-				throw new IllegalOperationError("Error: Access of undefined property " + name.toString() + " through a reference with static type " + cname);
+		
+		flash_proxy override function getProperty( name:* ):*
+		{
+			var index:int = parseInt( name ) & maskAddress;
+			if ( !isNaN( index ) )
+			{
+				return IOHandlerInfo( handlers[ index ] ).getter( index );
+			}
+			else if ( props.accessor[ name ] != undefined )
+			{
+				return arr[ name.toString() ];
+			}
+			else
+			{
+				throw new IllegalOperationError( "Error: Access of undefined property " + name.toString() + " through a reference with static type " + cname );
 			}
 		}
-
-		flash_proxy override function callProperty(name:*, ...rest):* {
-			if(props.method[name] != undefined) {
-				return arr[name.toString()].apply(null, rest);
-			} else {
-				throw new IllegalOperationError("Error: Call to a possibly undefined method " + name.toString() + " through a reference with static type " + cname);
+		
+		flash_proxy override function callProperty( name:*, ... rest ):*
+		{
+			if ( props.method[ name ] != undefined )
+			{
+				return arr[ name.toString() ].apply( null, rest );
+			}
+			else
+			{
+				throw new IllegalOperationError( "Error: Call to a possibly undefined method " + name.toString() + " through a reference with static type " + cname );
 			}
 		}
 	}
