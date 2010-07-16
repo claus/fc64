@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * Copyright notice
+ *
+ * (c) 2005-2006 Darron Schall, Claus Wahlers.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+-->
+
+<mx:Application 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fc64="components.*"
+	layout="vertical"
+	horizontalAlign="left"
+	backgroundGradientColors="[#555555, #999999]"
+	paddingTop="8"
+	paddingLeft="8"
+	paddingRight="8"
+	paddingBottom="8"
+	color="#000000"
+>
+	
+	<mx:Script>
+		<![CDATA[
+		
+			import commands.*;
+			import mx.events.MenuEvent;
+			import flash.utils.*;
+			import flash.events.*;
+			import core.events.*;
+			import c64.events.*;
+			
+			// For the time being, force the class to be compiled in the .swf
+			// by creating a dependency
+			private static var dependency1:Class = commands.DebugCommand;
+			private static var dependency2:Class = commands.LoadRomCommand;
+			private static var dependency3:Class = commands.ResetCommand;
+			private static var dependency4:Class = commands.HelpCommand;
+
+			private var state:String = "normal";
+			
+			private function menuHandler(event:MenuEvent):void {
+				// Look up the command to execute based on the command name given
+				// in the menu item that was clicked on
+				try {
+					var clazz:Class = getDefinitionByName( event.item.@command ) as Class;
+					if (clazz != null) {
+						// If the command was found, execute it
+						var command:ICommand = new clazz();
+						command.execute();	
+					}
+				} 
+				catch (e:ReferenceError) {
+					trace(
+						event.item.@command + 
+						" could not be found in .swf. Did you" + 
+						" forget to include it in compilation?");
+				}
+				
+			}
+			
+			private function onCPUReset(e:CPUResetEvent):void {
+				software.enabled = false;
+				fc64.cpu.setBreakpoint(0xA483, 255);
+			}
+			
+			private function onStop(e:DebuggerEvent):void {
+				if(e.breakpointType == 255) {
+					if(state == "loading") {
+						var fileName:String = software.selectedItem.filename;
+						var request:URLRequest = new URLRequest(fileName);
+						var loader:URLLoader = new URLLoader();
+						loader.dataFormat = URLLoaderDataFormat.BINARY;
+						loader.addEventListener(Event.COMPLETE, onLoadPRG);
+						loader.load(request);
+					} else {
+						software.enabled = true;
+					}
+					fc64.renderer.start();
+				}
+			}
+
+			private function onOSInitialized(e:OSInitializedEvent):void {
+			}
+			
+			private function onLoadPRG(e:Event):void {
+				var ba:ByteArray = ByteArray(e.target.data);
+				// get start address
+				ba.endian = Endian.LITTLE_ENDIAN;
+				var startAddress:int = ba.readShort();
+				// copy contents
+				var addr:int = startAddress;
+				for(var i:uint = 0x02; i < ba.length; i++) {
+					fc64.mem.write(addr++, ba[i]);
+				}
+				if(startAddress == 0x0801) {
+					// run command
+					var charsInBuffer:uint = fc64.mem.read(0xc6);
+					if(charsInBuffer < fc64.mem.read(0x0289) - 4) {
+						var keyboardBuffer:uint = 0x0277 + charsInBuffer + 1;
+						fc64.mem.write(keyboardBuffer++, 82); // R
+						fc64.mem.write(keyboardBuffer++, 85); // U
+						fc64.mem.write(keyboardBuffer++, 78); // N
+						fc64.mem.write(keyboardBuffer++, 13); // Return
+						fc64.mem.write(0xc6, charsInBuffer + 5);
+					}
+				} else {
+					fc64.cpu.pc = startAddress;
+				}
+				software.enabled = true;
+				software.selectedIndex = -1;
+				loadButton.enabled = false;
+				state = "normal";
+			}
+			
+			private function onFrameRateInfo(e:FrameRateInfoEvent):void {
+				fc64Panel.status = e.frameTime + " ms/frame, " + e.fps + " fps";
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:ApplicationControlBar width="100%">
+	
+		<mx:MenuBar id="menu" width="100%" labelField="@label" itemClick="menuHandler( event );">
+			<mx:XMLList>
+				<menuitem label="File">
+					<menuitem label="Reset" command="commands.ResetCommand" />
+				</menuitem>
+				<menuitem label="Help">
+					<menuitem label="FC64 Project Homepage" command="commands.HelpCommand" />
+				</menuitem>
+	        </mx:XMLList>
+		</mx:MenuBar>
+		
+	</mx:ApplicationControlBar>
+	
+	<mx:Box paddingTop="5" paddingLeft="10" paddingRight="10" width="100%">
+
+		<mx:HBox width="100%">
+			<mx:Script>
+				<![CDATA[
+					private function onLoad():void {
+						state = "loading";
+						fc64.cpu.reset();
+					}
+				]]>
+			</mx:Script>
+	
+			<mx:Panel id="fc64Panel" title="FC64 Emulator" status="">
+				<mx:Box borderThickness="3" borderStyle="inset">
+					<fc64:FC64
+						id="fc64"
+						width="403"
+						height="284"
+						cpuReset="onCPUReset(event)"
+						frameRateInfo="onFrameRateInfo(event)"
+						stop="onStop(event)"
+					/>
+				</mx:Box>
+			</mx:Panel>
+	
+			<mx:Panel id="softwarePanel" title="Software" width="100%" height="100%">
+				<mx:Script>
+					<![CDATA[
+						private function onSoftwareTreeChange(event:Event):void {            
+							loadButton.enabled = (software.selectedIndex != -1);
+						}
+					]]>
+				</mx:Script>
+				<mx:HBox width="100%" height="100%">
+					<mx:DataGrid
+						id="software"
+						width="100%"
+						height="100%"
+						enabled="false"
+						change="onSoftwareTreeChange(event)"
+					>
+						<mx:dataProvider>
+							<mx:ArrayCollection>
+								<mx:source> 
+									<mx:Object name="Galaga" type="Game" filetype="PRG" filename="roms/GALAGA.PRG" />
+									<mx:Object name="Galaga Color" type="Game" filetype="PRG" filename="roms/COLOURGALAGA.PRG" />
+									<mx:Object name="Elite" type="1337" filetype="PRG" filename="roms/ELITE.PRG" />
+									<mx:Object name="Hellgate" type="Game" filetype="PRG" filename="roms/HELLGATE.PRG" />
+									<mx:Object name="Matrix" type="Game" filetype="PRG" filename="roms/MATRIX.PRG" />
+									<mx:Object name="Voidrunner" type="Game" filetype="PRG" filename="roms/VOIDRUNNER.PRG" />
+								</mx:source>
+							</mx:ArrayCollection>
+						</mx:dataProvider>
+						<mx:columns>
+							<mx:Array>
+								<mx:DataGridColumn dataField="name" headerText="Name" />
+								<mx:DataGridColumn dataField="type" headerText="Genre" width="125" />
+								<mx:DataGridColumn dataField="filetype" headerText="Type" width="65" />
+							</mx:Array>
+						</mx:columns>
+					</mx:DataGrid>
+				</mx:HBox>
+				<mx:ControlBar width="100%">
+					<mx:Label id="softwarePanelControlLabel" text="" />
+					<mx:Spacer width="100%" />
+					<mx:Button id="loadButton" enabled="false" label="Load" click="onLoad()" />
+				</mx:ControlBar>
+			</mx:Panel>
+			
+		</mx:HBox>	
+		
+	</mx:Box>
+
+</mx:Application>
