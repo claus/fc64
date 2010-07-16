@@ -17,11 +17,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package commands
 {
-	public interface ICommand
+	import flash.net.navigateToURL;
+	import flash.net.URLRequest;
+	
+	public class HelpCommand implements ICommand
 	{
-		function execute():void;
+		public function execute():void
+		{
+			navigateToURL( new URLRequest( "http://osflash.org/fc64" ) );
+		}
 	}
 }

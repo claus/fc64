@@ -48,7 +48,7 @@ package commands
 			}
 			
 			PopUpManager.createPopUp( application, DebugWindow );
-			
+		
 			// TODO: Add listeners so the debugger "works"
 		}
 	}

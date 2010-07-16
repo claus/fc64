@@ -20,14 +20,9 @@
 
 package commands
 {
-	import flash.net.navigateToURL;
-	import flash.net.URLRequest;
 	
-	public class HelpCommand implements ICommand
+	public interface ICommand
 	{
-		public function execute():void
-		{
-			navigateToURL(new URLRequest("http://osflash.org/fc64"));
-		}
+		function execute():void;
 	}
 }
