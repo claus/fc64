@@ -77,6 +77,17 @@
 			
 			}
 			
+			private function onLoad():void
+			{
+				state = "loading";
+				fc64.cpu.reset();
+			}
+			
+			private function onSoftwareTreeChange( event:Event ):void
+			{
+				loadButton.enabled = ( software.selectedIndex != -1 );
+			}
+			
 			private function onCPUReset( e:CPUResetEvent ):void
 			{
 				software.enabled = false;
@@ -157,131 +168,123 @@
 			width="100%"
 			labelField="@label"
 			itemClick="menuHandler( event );">
-			<fx:XMLList>
 
-				<menuitem label="File">
-					<menuitem label="Reset"
-						command="commands.ResetCommand" />
-				</menuitem>
-				<menuitem label="Help">
-					<menuitem label="FC64 Project Homepage"
-						command="commands.HelpCommand" />
-				</menuitem>
-			</fx:XMLList>
+			<mx:dataProvider>
+				<fx:XMLList xmlns="">
+					<menuitem label="File">
+						<!--
+							 <menuitem label="Debug"
+							 command="commands.DebugCommand" />
+						-->
+						<menuitem label="Reset"
+							command="commands.ResetCommand" />
+					</menuitem>
+					<menuitem label="Help">
+						<menuitem label="FC64 Project Homepage"
+							command="commands.HelpCommand" />
+					</menuitem>
+				</fx:XMLList>
+			</mx:dataProvider>
 		</mx:MenuBar>
 
 	</mx:ApplicationControlBar>
 
-	<mx:Box width="100%"
-		paddingLeft="10"
-		paddingRight="10"
-		paddingTop="5">
+	<s:Group width="100%">
+		<s:layout>
+			<s:HorizontalLayout paddingLeft="10"
+				paddingRight="10"
+				paddingTop="5" />
+		</s:layout>
 
-		<mx:HBox width="100%">
-			<fx:Script>
-				<![CDATA[
-					private function onLoad():void
-					{
-						state = "loading";
-						fc64.cpu.reset();
-					}
-				]]>
-			</fx:Script>
 
-			<mx:Panel id="fc64Panel"
-				title="FC64 Emulator"
-				status="">
+		<mx:Panel id="fc64Panel"
+			title="FC64 Emulator"
+			status="">
 
-				<s:BorderContainer borderStyle="inset"
-					borderWeight="3">
+			<s:BorderContainer borderStyle="inset"
+				borderWeight="3">
 
-					<fc64:FC64 id="fc64"
-						width="403" height="284"
-						cpuReset="onCPUReset(event)"
-						frameRateInfo="onFrameRateInfo(event)"
-						stop="onStop(event)" />
+				<fc64:FC64 id="fc64"
+					width="403" height="284"
+					cpuReset="onCPUReset(event)"
+					frameRateInfo="onFrameRateInfo(event)"
+					stop="onStop(event)" />
 
-				</s:BorderContainer>
-			</mx:Panel>
+			</s:BorderContainer>
+		</mx:Panel>
 
-			<mx:Panel id="softwarePanel"
+		<s:Panel id="softwarePanel"
+			width="100%" height="100%"
+			title="Software">
+
+			<s:layout>
+				<s:HorizontalLayout />
+			</s:layout>
+
+			<mx:DataGrid id="software"
 				width="100%" height="100%"
-				title="Software">
-				<fx:Script>
-					<![CDATA[
-						private function onSoftwareTreeChange( event:Event ):void
-						{
-							loadButton.enabled = ( software.selectedIndex != -1 );
-						}
-					]]>
-				</fx:Script>
-				<mx:HBox width="100%" height="100%">
+				enabled="false"
+				change="onSoftwareTreeChange(event)">
 
-					<mx:DataGrid id="software"
-						width="100%" height="100%"
-						enabled="false"
-						change="onSoftwareTreeChange(event)">
+				<mx:dataProvider>
+					<mx:ArrayCollection>
+						<mx:source>
+							<fx:Object name="Galaga"
+								type="Game"
+								filetype="PRG"
+								filename="roms/GALAGA.PRG" />
+							<fx:Object name="Galaga Color"
+								type="Game"
+								filetype="PRG"
+								filename="roms/COLOURGALAGA.PRG" />
+							<fx:Object name="Elite"
+								type="1337"
+								filetype="PRG"
+								filename="roms/ELITE.PRG" />
+							<fx:Object name="Hellgate"
+								type="Game"
+								filetype="PRG"
+								filename="roms/HELLGATE.PRG" />
+							<fx:Object name="Matrix"
+								type="Game"
+								filetype="PRG"
+								filename="roms/MATRIX.PRG" />
+							<fx:Object name="Voidrunner"
+								type="Game"
+								filetype="PRG"
+								filename="roms/VOIDRUNNER.PRG" />
+						</mx:source>
+					</mx:ArrayCollection>
+				</mx:dataProvider>
 
-						<mx:dataProvider>
-							<mx:ArrayCollection>
-								<mx:source>
-									<fx:Object name="Galaga"
-										type="Game"
-										filetype="PRG"
-										filename="roms/GALAGA.PRG" />
-									<fx:Object name="Galaga Color"
-										type="Game"
-										filetype="PRG"
-										filename="roms/COLOURGALAGA.PRG" />
-									<fx:Object name="Elite"
-										type="1337"
-										filetype="PRG"
-										filename="roms/ELITE.PRG" />
-									<fx:Object name="Hellgate"
-										type="Game"
-										filetype="PRG"
-										filename="roms/HELLGATE.PRG" />
-									<fx:Object name="Matrix"
-										type="Game"
-										filetype="PRG"
-										filename="roms/MATRIX.PRG" />
-									<fx:Object name="Voidrunner"
-										type="Game"
-										filetype="PRG"
-										filename="roms/VOIDRUNNER.PRG" />
-								</mx:source>
-							</mx:ArrayCollection>
-						</mx:dataProvider>
+				<mx:columns>
+					<fx:Array>
+						<mx:DataGridColumn dataField="name"
+							headerText="Name" />
+						<mx:DataGridColumn width="125"
+							dataField="type"
+							headerText="Genre" />
+						<mx:DataGridColumn width="65"
+							dataField="filetype"
+							headerText="Type" />
+					</fx:Array>
+				</mx:columns>
+			</mx:DataGrid>
 
-						<mx:columns>
-							<fx:Array>
-								<mx:DataGridColumn dataField="name"
-									headerText="Name" />
-								<mx:DataGridColumn width="125"
-									dataField="type"
-									headerText="Genre" />
-								<mx:DataGridColumn width="65"
-									dataField="filetype"
-									headerText="Type" />
-							</fx:Array>
-						</mx:columns>
-					</mx:DataGrid>
-				</mx:HBox>
+			<s:controlBarContent>
+				<s:Label id="softwarePanelControlLabel"
+					text="" />
 
-				<mx:ControlBar width="100%">
-					<mx:Label id="softwarePanelControlLabel"
-						text="" />
-					<mx:Spacer width="100%" />
-					<mx:Button id="loadButton"
-						enabled="false"
-						label="Load"
-						click="onLoad()" />
+				<s:Group width="100%" />
 
-				</mx:ControlBar>
-			</mx:Panel>
+				<s:Button id="loadButton"
+					enabled="false"
+					label="Load"
+					click="onLoad()" />
+			</s:controlBarContent>
 
-		</mx:HBox>
+		</s:Panel>
 
-	</mx:Box>
+	</s:Group>
 
 </s:Application>

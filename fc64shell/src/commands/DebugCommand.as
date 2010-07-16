@@ -20,16 +20,17 @@
 
 package commands
 {
-	import mx.managers.PopUpManager;
-	import mx.core.Application;
-	import flash.display.DisplayObject;
+	import mx.core.FlexGlobals;
 	import mx.core.IFlexDisplayObject;
+	import mx.managers.PopUpManager;
+	
+	import spark.components.Application;
 	
 	public class DebugCommand implements ICommand
 	{
 		public function execute():void
 		{
-			var application:Application = Application.application as Application;
+			var application:Application = FlexGlobals.topLevelApplication as Application;
 			
 			// Loop over the popups currently being displayed.  There should only
 			// be 1 debug window, so if we find it in the popup list we'll focus
@@ -53,3 +54,4 @@ package commands
 		}
 	}
 }
+

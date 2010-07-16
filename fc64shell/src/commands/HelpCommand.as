@@ -27,7 +27,8 @@ package commands
 	{
 		public function execute():void
 		{
-			navigateToURL( new URLRequest( "http://osflash.org/fc64" ) );
+			navigateToURL( new URLRequest( "http://github.com/claus/fc64" ) );
 		}
 	}
 }
+

@@ -20,14 +20,15 @@
 
 package commands
 {
-	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	
 	public class ResetCommand implements ICommand
 	{
 		public function execute():void
 		{
-			var shell:FC64Shell = Application.application as FC64Shell;
+			var shell:FC64Shell = FlexGlobals.topLevelApplication as FC64Shell;
 			shell.fc64.cpu.reset();
 		}
 	}
 }
+

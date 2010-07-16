@@ -21,6 +21,7 @@
 package commands
 {
 	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	
 	public class LoadRomCommand implements ICommand
 	{
@@ -31,8 +32,9 @@ package commands
 			//		Allow the user to select a file on their local system?
 			//		Both - Display a "Load Rom Window" and let them choose?
 			
-			var shell:FC64Shell = Application.application as FC64Shell;
+			var shell:FC64Shell = FlexGlobals.topLevelApplication as FC64Shell;
 			//shell.fc64.loadRom( ... );
 		}
 	}
 }
+
