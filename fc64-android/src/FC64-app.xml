@@ -70,10 +70,10 @@
 		<!-- <resizable></resizable> -->
 
 		<!-- The window's initial width in pixels. Optional. -->
-		<!-- <width></width> -->
+		<width>464</width>
 
 		<!-- The window's initial height in pixels. Optional. -->
-		<!-- <height></height> -->
+		<height>284</height>
 
 		<!-- The window's initial x position. Optional. -->
 		<!-- <x></x> -->
@@ -86,6 +86,10 @@
 
 		<!-- The window's initial maximum size, specified as a width/height pair in pixels, such as "1600 1200". Optional. -->
 		<!-- <maxSize></maxSize> -->
+
+		<aspectRatio>landscape</aspectRatio>
+		<autoOrients>true</autoOrients>
+		<!-- <fullScreen>true</fullScreen> -->
 	</initialWindow>
 
 	<!-- We recommend omitting the supportedProfiles element, -->

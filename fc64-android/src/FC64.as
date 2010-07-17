@@ -10,12 +10,19 @@ package
 	import core.events.OSInitializedEvent;
 	
 	import flash.display.Sprite;
+	import flash.display.StageAlign;
+	import flash.display.StageOrientation;
+	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.StageOrientationEvent;
 	import flash.text.TextField;
 	import flash.utils.ByteArray;
 	
 	import mx.core.ByteArrayAsset;
 	
+	/**
+	 *
+	 */
 	public class FC64 extends Sprite
 	{
 		[Embed( source="/assets/kernal.901227-03.bin", mimeType="application/octet-stream" )]
@@ -35,7 +42,15 @@ package
 		
 		private var fpsDisplay:TextField;
 		
+		/**
+		 *
+		 */
+		private var isPortrait:Boolean;
 		
+		/**
+		 * Constructor
+		 */
+		[SWF( width="464", height="284", frameRate="60" )]
 		public function FC64()
 		{
 			super();
@@ -74,26 +89,91 @@ package
 			
 			// Create text field for fps display
 			fpsDisplay = new TextField();
-			fpsDisplay.x = 0;
-			fpsDisplay.y = 285;
-			fpsDisplay.width = 403;
-			fpsDisplay.height = 40;
 			addChild( fpsDisplay );
+			
+			// Align UI in the initial landscape mode
+			alignLandscape();
+			
+			// Listen for orientation changes
+			stage.align = StageAlign.TOP_LEFT;
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
 			
 			// Start renderer
 			renderer.start();
 		}
 		
+		/**
+		 *
+		 */
+		private function alignLandscape():void
+		{
+			// Move the fps text to the right of the renderer
+			fpsDisplay.x = 404;
+			fpsDisplay.y = 0;
+			fpsDisplay.width = 60;
+			fpsDisplay.height = 284;
+			
+			isPortrait = false;
+		}
+		
+		/**
+		 *
+		 */
+		private function alignPortrait():void
+		{
+			// Move the fps text under the renderer
+			fpsDisplay.x = 0;
+			fpsDisplay.y = 285;
+			fpsDisplay.width = 403;
+			fpsDisplay.height = 60;
+			
+			isPortrait = true;
+		}
+		
+		/**
+		 *
+		 */
+		private function onOrientationChange( e:StageOrientationEvent ):void
+		{
+			// Landscape
+			if ( e.afterOrientation == StageOrientation.ROTATED_LEFT
+				|| e.afterOrientation == StageOrientation.ROTATED_RIGHT )
+			{
+				alignLandscape();
+			}
+			else // Portrait
+			{
+				alignPortrait();
+			}
+		}
+		
+		/**
+		 *
+		 */
 		private function onCPUReset( e:CPUResetEvent ):void
 		{
 			cpu.setBreakpoint( 0xA483, 255 );
 		}
 		
+		/**
+		 *
+		 */
 		private function onFrameRateInfo( e:FrameRateInfoEvent ):void
 		{
-			fpsDisplay.text = e.frameTime + " ms/frame, " + e.fps + " fps";
+			if ( isPortrait )
+			{
+				fpsDisplay.text = e.frameTime + " ms/frame " + e.fps + " fps";
+			}
+			else
+			{
+				fpsDisplay.text = e.frameTime + " ms\n  /frame\n\n" + e.fps + " fps";
+			}
 		}
 		
+		/**
+		 *
+		 */
 		private function onStop( e:DebuggerEvent ):void
 		{
 			if ( e.breakpointType == 255 )
@@ -116,6 +196,9 @@ package
 			}
 		}
 		
+		/**
+		 *
+		 */
 		private function onLoadPRG( e:Event ):void
 		{
 //			var ba:ByteArray = ByteArray( e.target.data );
