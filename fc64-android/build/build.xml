@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="FC64-Android" default="android" basedir="../">
+
+	<!-- ============================== -->
+	<!--  Configuration -->
+	<!-- ============================== -->
+
+	<property environment="env" />
+
+	<!-- Configuration -->
+	<property file="build/build.properties" />
+
+	<!-- Setup Flex Ant Resources -->
+	<property name="FLEX_HOME" location="${env.FLEX_HOME}" />
+
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
+
+	<!-- AIR resources -->
+	<property name="adl" value="${FLEX_HOME}/bin/adl"/>
+	<property name="adt" value="${FLEX_HOME}/lib/adt.jar"/>
+
+
+	<!-- ============================== -->
+	<!--  Clean and Init -->
+	<!-- ============================== -->
+
+	<target name="clean" description="Removes artifacts from previous builds">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${output.dir}" includes="**/*"/>
+		</delete>
+	</target>
+
+	<target name="init" description="Initializes project and destination folders">
+		<echo message="Project: ${ant.project.name}" />
+		<echo message="Flex SDK: ${FLEX_HOME}" />
+
+		<!-- Create direectories -->
+		<mkdir dir="${output.dir}" />
+	</target>
+
+	<!-- ======================================= -->
+	<!--  Compile and Package Targets -->
+	<!-- ======================================= -->
+
+	<target name="compile">
+		<mxmlc file="${source.dir}/FC64.as"
+			output="${output.dir}/FC64.swf"
+			locale="${locale}"
+			static-rsls="true"
+			accessible="true"
+			configname="air"
+			failonerror="true">
+
+			<source-path path-element="${source.dir}"/>
+
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/air/airglobal.swc" append="true"/>
+
+			<library-path dir="${library.dir}" includes="*.swc" append="true"/>
+
+			<!-- FC64 library dependency -->
+			<library-path file="${libfc64.swc}" append="true"/>
+
+		</mxmlc>
+	</target>
+
+	<target name="package-android" description="Packages the build SWF file from the output direction into the .apk file">
+		<java jar="${adt}" failonerror="true" fork="true">
+
+			<arg value="-package"/>
+
+			<arg value="-target" />
+			<arg value="apk" />
+
+			<arg value="-storetype"/>
+			<arg value="${storetype}"/>
+
+			<arg value="-keystore"/>
+			<arg value="${keystore}"/>
+
+			<arg value="-storepass"/>
+			<arg value="${storepass}"/>
+
+			<arg value="FC64"/>
+
+			<arg value="${source.dir}/FC64-app.xml"/>
+
+			<arg value="-C"/>
+			<arg value="${output.dir}"/>
+			<arg value="FC64.swf"/>
+		</java>
+
+		<move file="${basedir}/FC64.apk" todir="${output.dir}"/>
+	</target>
+
+	<!-- ======================================= -->
+	<!--  Install Target -->
+	<!-- ======================================= -->
+
+	<target name="install-android" description="Installs packaged application to USB-connected debugging device">
+		<exec executable="adb">
+			<arg value="install"/>
+			<arg value="-r"/>
+			<arg value="${output.dir}/FC64.apk"/>
+		</exec> 
+	</target>
+
+	<target name="android" depends="clean, init, compile, package-android, install-android" />
+
+</project>
