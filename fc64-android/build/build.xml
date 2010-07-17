@@ -19,7 +19,6 @@
 	<property name="adl" value="${FLEX_HOME}/bin/adl"/>
 	<property name="adt" value="${FLEX_HOME}/lib/adt.jar"/>
 
-
 	<!-- ============================== -->
 	<!--  Clean and Init -->
 	<!-- ============================== -->
@@ -61,6 +60,25 @@
 			<library-path file="${libfc64.swc}" append="true"/>
 
 		</mxmlc>
+	</target>
+
+	<target name="optimize">
+		<!-- Apparat resources -->
+		<property name="SCALA_HOME" location="${env.SCALA_HOME}" />
+		<property name="APPARAT_HOME" location="${env.APPARAT_HOME}" />
+
+		<path id="apparat.path">
+			<fileset dir="${SCALA_HOME}" includes="lib/*.jar"/>
+			<fileset dir="${APPARAT_HOME}" includes="*.jar"/>
+		</path>
+
+		<taskdef resource="apparat/embedding/ant/antlib.xml">
+			<classpath refid="apparat.path"/>
+		</taskdef>
+
+		<tdsi in="${output.dir}/FC64.swf">
+			<classpath refid="apparat.path"/>
+		</tdsi>	
 	</target>
 
 	<target name="package-android" description="Packages the build SWF file from the output direction into the .apk file">
