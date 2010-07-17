@@ -1,2 +1,5 @@
 libfc64/bin/libfc64.swc
+fc64shell/bin-debug
 fc64shell/bin-release
+fc64-android/bin-debug
+fc64-android/bin-release
