@@ -8,7 +8,10 @@ package components
 	import core.cpu.CPU6502;
 	import core.events.CPUResetEvent;
 	
+	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
 	import flash.utils.ByteArray;
 	
 	import mx.core.ByteArrayAsset;
@@ -27,9 +30,12 @@ package components
 		/**
 		 * Constructor
 		 */
-		public function FC64Sprite()
+		public function FC64Sprite( keyboardListenerTarget:EventDispatcher = null )
 		{
 			super();
+			
+			width = 403;
+			height = 284;
 			
 			// cast embedded roms to bytearrays 
 			var romKernel:ByteArray = new ROMEmbeds.KERNEL() as ByteArrayAsset;
@@ -60,7 +66,7 @@ package components
 			addChild( _renderer );
 			
 			// Initialize and enable keyboard
-			_mem.cia1.keyboard.initialize( _cpu, stage );
+			_mem.cia1.keyboard.initialize( _cpu, keyboardListenerTarget == null ? stage : keyboardListenerTarget );
 			_mem.cia1.keyboard.enabled = true;
 		}
 		

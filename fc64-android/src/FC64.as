@@ -7,13 +7,20 @@ package
 	
 	import core.events.CPUResetEvent;
 	
+	import flash.desktop.NativeApplication;
+	import flash.display.Screen;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
+	import flash.display.StageDisplayState;
 	import flash.display.StageOrientation;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.InvokeEvent;
+	import flash.events.KeyboardEvent;
 	import flash.events.StageOrientationEvent;
+	import flash.geom.Rectangle;
 	import flash.text.TextField;
+	import flash.ui.Keyboard;
 	
 	/**
 	 *
@@ -27,17 +34,37 @@ package
 		/**
 		 *
 		 */
-		private var isPortrait:Boolean;
+		private var isPortrait:Boolean = true;
 		
 		/**
 		 * Constructor
 		 */
-		[SWF( width="464", height="284", frameRate="60" )]
+		//[SWF( width="480", height="800", frameRate="60" )]
 		public function FC64()
 		{
 			super();
 			
-			fc64 = new FC64Sprite();
+			addEventListener( Event.ADDED_TO_STAGE, onAddedToStage );
+			addEventListener( Event.REMOVED_FROM_STAGE, onRemovedFromStage );
+			
+//			NativeApplication.nativeApplication.addEventListener( InvokeEvent.INVOKE, onInvoke );
+//			NativeApplication.nativeApplication.addEventListener( Event.ACTIVATE, onActivate );
+			NativeApplication.nativeApplication.addEventListener( Event.DEACTIVATE, onDeactivate );
+			
+//			NativeApplication.nativeApplication.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+			
+			init();
+		
+			//stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+		}
+		
+		/**
+		 *
+		 */
+		private function init():void
+		{
+			// Pass the native application through as the keyboard listener
+			fc64 = new FC64Sprite( NativeApplication.nativeApplication );
 			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
 			fc64.addEventListener( FrameRateInfoEvent.FRAMERATE_INFO, onFrameRateInfo );
 			fc64.addEventListener( DebuggerEvent.STOP, onStop );
@@ -47,13 +74,15 @@ package
 			fpsDisplay = new TextField();
 			addChild( fpsDisplay );
 			
-			// Align UI in the initial landscape mode
-			alignLandscape();
+			// Start up in portrait mode initially
+			alignPortrait();
 			
 			// Listen for orientation changes
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
+			stage.addEventListener( Event.RESIZE, onResizeChange );
+			//stage.focus = fc64.renderer;
 			
 			// Start renderer
 			fc64.renderer.start();
@@ -62,15 +91,107 @@ package
 		/**
 		 *
 		 */
+		private function onInvoke( event:InvokeEvent ):void
+		{
+//			init()
+		}
+		
+		/**
+		 *
+		 */
+		private function onAddedToStage( event:Event ):void
+		{
+			fc64.mem.cia1.keyboard.enabled = true;
+		}
+		
+		/**
+		 *
+		 */
+		private function onRemovedFromStage( event:Event ):void
+		{
+			fc64.mem.cia1.keyboard.enabled = false;
+		}
+		
+		/**
+		 *
+		 */
+		private function onActivate( event:Event ):void
+		{
+//			fc64.renderer.start();
+//			fc64.mem.cia1.keyboard.enabled = true;
+		}
+		
+		/**
+		 *
+		 */
+		private function onDeactivate( event:Event ):void
+		{
+//			fc64.renderer.stop();
+			
+			NativeApplication.nativeApplication.exit();
+		
+//			fc64.mem.cia1.keyboard.enabled = false;
+		}
+		
+		/**
+		 *
+		 */
+		private function onOrientationChange( event:StageOrientationEvent ):void
+		{
+			alignToOrientation( event.afterOrientation );
+		}
+		
+		/**
+		 *
+		 */
+		private function alignToOrientation( orientation:String ):void
+		{
+			// Landscape
+			if ( orientation == StageOrientation.ROTATED_LEFT
+				|| orientation == StageOrientation.ROTATED_RIGHT )
+			{
+				isPortrait = false;
+			}
+			else // Portrait
+			{
+				isPortrait = true;
+			}
+		}
+		
+		/**
+		 * 
+		 */
+		private function onResizeChange( event:Event ):void
+		{
+			if ( isPortrait )
+			{
+				alignPortrait();
+			}
+			else
+			{
+				alignLandscape();
+			}
+		}
+		
+		/**
+		 *
+		 */
 		private function alignLandscape():void
 		{
+			var screenBounds:Rectangle = Screen.mainScreen.bounds;
+			//var deviceWidth:int = screenBounds.width;
+			var deviceHeight:int = screenBounds.height;
+			
+			// Scale FC64 to match the height
+			fc64.scaleX = fc64.scaleY = 1;
+			var newScale:Number = deviceHeight / fc64.height;
+			fc64.scaleX = fc64.scaleY = newScale;
+			
 			// Move the fps text to the right of the renderer
-			fpsDisplay.x = 404;
+			fpsDisplay.x = fc64.x + fc64.width;
 			fpsDisplay.y = 0;
 			fpsDisplay.width = 60;
-			fpsDisplay.height = 284;
-			
-			isPortrait = false;
+			fpsDisplay.height = deviceHeight;
 		}
 		
 		/**
@@ -78,36 +199,43 @@ package
 		 */
 		private function alignPortrait():void
 		{
+			var screenBounds:Rectangle = Screen.mainScreen.bounds;
+			var deviceWidth:int = screenBounds.width;
+			//var deviceHeight:int = screenBounds.height;
+			
+			// Scale FC64 to match the width
+			fc64.scaleX = fc64.scaleY = 1;
+			var newScale:Number = deviceWidth / fc64.width;
+			fc64.scaleX = fc64.scaleY = newScale;
+			
 			// Move the fps text under the renderer
 			fpsDisplay.x = 0;
-			fpsDisplay.y = 285;
-			fpsDisplay.width = 403;
+			fpsDisplay.y = fc64.y + fc64.height;
+			fpsDisplay.width = deviceWidth;
 			fpsDisplay.height = 60;
-			
-			isPortrait = true;
 		}
 		
 		/**
 		 *
 		 */
-		private function onOrientationChange( e:StageOrientationEvent ):void
+		private function onKeyDown( event:KeyboardEvent ):void
 		{
-			// Landscape
-			if ( e.afterOrientation == StageOrientation.ROTATED_LEFT
-				|| e.afterOrientation == StageOrientation.ROTATED_RIGHT )
+			if ( event.keyCode == Keyboard.BACK )
 			{
-				alignLandscape();
+				// If we want to handle the Back button differently, we can
+				// prevent the event and put our own logic here
+				//e.preventDefault();
 			}
-			else // Portrait
+			else if ( event.keyCode == Keyboard.MENU )
 			{
-				alignPortrait();
+				// FIXME: Open menu with "reset" and rom selections
 			}
 		}
 		
 		/**
 		 *
 		 */
-		private function onCPUReset( e:CPUResetEvent ):void
+		private function onCPUReset( event:CPUResetEvent ):void
 		{
 			fc64.cpu.setBreakpoint( 0xA483, 255 );
 		}
@@ -115,24 +243,24 @@ package
 		/**
 		 *
 		 */
-		private function onFrameRateInfo( e:FrameRateInfoEvent ):void
+		private function onFrameRateInfo( event:FrameRateInfoEvent ):void
 		{
 			if ( isPortrait )
 			{
-				fpsDisplay.text = e.frameTime + " ms/frame " + e.fps + " fps";
+				fpsDisplay.text = event.frameTime + " ms/frame " + event.fps + " fps";
 			}
 			else
 			{
-				fpsDisplay.text = e.frameTime + " ms\n  /frame\n\n" + e.fps + " fps";
+				fpsDisplay.text = event.frameTime + " ms\n  /frame\n\n" + event.fps + " fps";
 			}
 		}
 		
 		/**
 		 *
 		 */
-		private function onStop( e:DebuggerEvent ):void
+		private function onStop( event:DebuggerEvent ):void
 		{
-			if ( e.breakpointType == 255 )
+			if ( event.breakpointType == 255 )
 			{
 //				if ( state == "loading" )
 //				{
@@ -155,7 +283,7 @@ package
 		/**
 		 *
 		 */
-		private function onLoadPRG( e:Event ):void
+		private function onLoadPRG( event:Event ):void
 		{
 //			var ba:ByteArray = ByteArray( e.target.data );
 //			// get start address

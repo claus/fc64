@@ -21,11 +21,13 @@
 package c64.memory.io
 {
 	import core.cpu.CPU6502;
+	import core.misc.Convert;
+	
 	import flash.display.DisplayObject;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
 	import flash.utils.ByteArray;
-	import core.misc.Convert;
 	
 	public class Keyboard
 	{
@@ -49,7 +51,10 @@ package c64.memory.io
 		
 		private var _enabled:Boolean = false;
 		
-		private var listenerTarget:DisplayObject;
+		/**
+		 * Target that dispatches keyboard events.
+		 */
+		private var listenerTarget:EventDispatcher;
 		
 		
 		/**
@@ -71,9 +76,10 @@ package c64.memory.io
 		 * @param cpu The CPU that an NMI can be triggered on
 		 * @param listenerTarget The area to listen to for key press/release events
 		 */
-		public function initialize( cpu:CPU6502, listenerTarget:DisplayObject ):void
+		public function initialize( cpu:CPU6502, listenerTarget:EventDispatcher ):void
 		{
 			enabled = false;
+			
 			this.cpu = cpu;
 			this.listenerTarget = listenerTarget;
 		}
@@ -281,9 +287,11 @@ package c64.memory.io
 			
 			if ( keyMatrixLocations[ keyCode ] != null )
 			{
+				var keyMatrixItem:Array = keyMatrixLocations[ keyCode ];
+				
 				// Get the row/column location of the key in the matrix
-				var row:int = keyMatrixLocations[ keyCode ][ 0 ];
-				var column:int = keyMatrixLocations[ keyCode ][ 1 ];
+				var row:int = keyMatrixItem[ 0 ];
+				var column:int = keyMatrixItem[ 1 ];
 				
 				// Mark the row value as being pressed for the column
 				keyMaskColumns[ column ] &= ~( 1 << row );
@@ -291,3 +299,5 @@ package c64.memory.io
 		}
 	}
 }
+
+

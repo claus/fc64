@@ -48,7 +48,8 @@
 			static-rsls="true"
 			accessible="true"
 			configname="air"
-			failonerror="true">
+			failonerror="true"
+			debug="false">
 
 			<source-path path-element="${source.dir}"/>
 
@@ -88,6 +89,7 @@
 
 			<arg value="-target" />
 			<arg value="apk" />
+			<!-- <arg value="apk-debug" /> -->
 
 			<arg value="-storetype"/>
 			<arg value="${storetype}"/>
