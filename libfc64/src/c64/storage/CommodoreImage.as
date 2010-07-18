@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-package storage
+package c64.storage
 {
 	import flash.utils.ByteArray;
 	
@@ -26,33 +26,33 @@ package storage
 	{
 		public var filename:String = '';
 		public var image:Object = 
-		{
-			'dir': [],
-			'info': {}			
-		};
+			{
+				'dir': [],
+				'info': {}			
+			};
 		public var fileTypeLabel:Array = [ 'DEL', 'SEQ', 'PRG', 'USR', 'REL', 'CBM', '???', '???' ];
-
+		
 		public function CommodoreImage( fn:String=null )
 		{
 			filename = fn;
 			newImage();
 		}
-
+		
 		public function newImage():Object
 		{
 			image = 
-			{
-				'dir': [],
-				'info': {}			
-			};
+				{
+					'dir': [],
+					'info': {}			
+				};
 			return image;
 		}
-  
-  		public function getImageDetails():String
-  		{
-  			return "No image details available";
-  		}
- 
+		
+		public function getImageDetails():String
+		{
+			return "No image details available";
+		}
+		
 		/*****************************************************************************************************
 		 *
 		 *   HANDY UTILITY METHODS
@@ -61,7 +61,7 @@ package storage
 		public function toBytes( str:String ):LByteArray
 		{
 			var out:LByteArray = new LByteArray();
-
+			
 			for( var i:int=0; i<str.length; i++ )
 			{
 				out.writeByte( str.charCodeAt(i) );
@@ -91,28 +91,28 @@ package storage
 			var s:String = ba.toString().replace( /\s+$/, '' );
 			return s;
 		}
-
+		
 		public function dump( image:ByteArray, offset:int=0, len:int=256 ):String
 		{
 			image.position = offset;
 			var hdr:String = "        00 01 02 03 04 05 06 07  08 09 0a 0b 0c 0d 0e 0f         ASCII     \n"
-                           + "        ------------------------------------------------   ----------------\n";
-                              
-            var out:String = "";
+				+ "        ------------------------------------------------   ----------------\n";
+			
+			var out:String = "";
 			var txt:String = "";
 			var asc:String = "";
-
+			
 			for( var i:int=0; i<len; i++ )
 			{
 				if ( i % 8 == 0 ) 
 				{
 					txt += " ";
-
+					
 					if ( i % 16 == 0 ) 
 					{
 						if ( i > 0 )
 						{
-					   	txt += "  " + asc + "\n";
+							txt += "  " + asc + "\n";
 						}
 						if ( i % 256 == 0 ) 
 						{
@@ -122,7 +122,7 @@ package storage
 						asc = '';
 					}
 				}
-
+				
 				var byte:int = image.readByte() & 0xff;
 				var str:String = hex(byte).toUpperCase();
 				txt += " " + str;
@@ -136,11 +136,11 @@ package storage
 				}
 			}
 			txt += "   " + asc + "\n";
-
+			
 			image.position = 0; // reset read position
 			return out + txt;
 		}
-
+		
 		public function hex( val:int, precision:int=2 ):String
 		{
 			var out:String = val.toString(16);
@@ -150,7 +150,7 @@ package storage
 			}
 			return out;
 		}	
-
+		
 		/*
 		 *  Breaks up a byte array into 256-byte blocks, with the first
 		 *  two bytes being reserved (for potential use as T/S link data).
@@ -179,55 +179,55 @@ package storage
 			}
 			return out;
 		}
-
+		
 		/*
 		 *  Takes a 256-byte-block chain and returns the LSU
 		 *  (by definition, the 2nd byte of the final sector).
 		 */
-	    public function getLSU( chain:Array ):int
-	    {
-	    	var lastSector:LByteArray = chain[ chain.length - 1 ];
-	    	var lsu:int = lastSector[1] & 0xff;
-	    	return lsu;
-	    }
-	    
-        /*
-         * Takes an array of sectors and returns
-         *  just the program data.
-         */
-        public function joinFile( chain:Array, numberOfBytes:int=254 ):LByteArray
-        {
-        	var result:LByteArray = new LByteArray();
-        	for each (var entry:Object in chain)
-        	{
-        		var sec:LByteArray = entry[ 'bytes' ];
-        		var t:int = sec.readByte() & 0xff;
-        		var s:int = sec.readByte() & 0xff;
-        		
-        		if ( t == 0 ) // lsu
-        			sec.readBytes( result, result.length, s );
-        		else
-        			sec.readBytes( result, result.length, numberOfBytes );
-        	}
-        	return result;
-        }
-        
-        public function getProgram( directoryEntry:Object ):LByteArray
-        {
-        	var prg:LByteArray;
-        	
-        	if ( directoryEntry[ 'prg' ] != null )
-        	{
-        		prg = directoryEntry[ 'prg' ];
-        	}
-        	else
-        	{
-        		var chain:Array = directoryEntry[ 'data' ];
-        		prg = joinFile( chain );
-        	}
-        	return prg;
-        }
-
+		public function getLSU( chain:Array ):int
+		{
+			var lastSector:LByteArray = chain[ chain.length - 1 ];
+			var lsu:int = lastSector[1] & 0xff;
+			return lsu;
+		}
+		
+		/*
+		 * Takes an array of sectors and returns
+		 *  just the program data.
+		 */
+		public function joinFile( chain:Array, numberOfBytes:int=254 ):LByteArray
+		{
+			var result:LByteArray = new LByteArray();
+			for each (var entry:Object in chain)
+			{
+				var sec:LByteArray = entry[ 'bytes' ];
+				var t:int = sec.readByte() & 0xff;
+				var s:int = sec.readByte() & 0xff;
+				
+				if ( t == 0 ) // lsu
+					sec.readBytes( result, result.length, s );
+				else
+					sec.readBytes( result, result.length, numberOfBytes );
+			}
+			return result;
+		}
+		
+		public function getProgram( directoryEntry:Object ):LByteArray
+		{
+			var prg:LByteArray;
+			
+			if ( directoryEntry[ 'prg' ] != null )
+			{
+				prg = directoryEntry[ 'prg' ];
+			}
+			else
+			{
+				var chain:Array = directoryEntry[ 'data' ];
+				prg = joinFile( chain );
+			}
+			return prg;
+		}
+		
 		/*
 		 *
 		 *   ** END ** HANDY UTILITY METHODS
@@ -273,12 +273,12 @@ package storage
 		{
 			image['info']['imageVersion'] = arg;
 		}		 
-
+		
 		public function getDirectory():Array
 		{
 			return image[ 'dir' ];
 		}
-
+		
 		public function getDirectoryEntry( index:int ):Object
 		{
 			return (image[ 'dir' ] as Array)[index];
@@ -289,7 +289,7 @@ package storage
 			image[ 'dir' ] = dir;
 			return true;
 		}
-
+		
 		public function addEntry(entry:Object):Boolean
 		{
 			image[ 'dir' ].push( entry );
@@ -322,3 +322,4 @@ package storage
 		}
 	}
 }
+

@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-package storage.formats
+package c64.storage.formats
 {
 	import flash.utils.ByteArray;
 	
-	import storage.LByteArray;
+	import c64.storage.LByteArray;
 	
 	public interface Storable
 	{
@@ -43,7 +43,7 @@ package storage.formats
 		function getDirectoryEntry( entryNum:int ):Object;
 		function addEntry( entry:Object ):Boolean;
 		function delEntry( index:int ):void;
-
+		
 		function getProgram( entry:Object ):LByteArray;		
 		function getSector( t:int, s:int ):LByteArray;
 		
@@ -53,3 +53,4 @@ package storage.formats
 		function getExtendedData():LByteArray;
 	}
 }
+

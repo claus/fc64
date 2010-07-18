@@ -25,7 +25,7 @@
 	xmlns:s="library://ns.adobe.com/flex/spark"
 	xmlns:mx="library://ns.adobe.com/flex/mx"
 	xmlns:fc64="components.*"
-	backgroundColor="#999999">
+	backgroundColor="#999999" xmlns:components="components.*">
 
 	<s:layout>
 		<s:VerticalLayout horizontalAlign="left"
@@ -204,7 +204,7 @@
 			<s:BorderContainer borderStyle="inset"
 				borderWeight="3">
 
-				<fc64:FC64 id="fc64"
+				<components:FC64UIComponent id="fc64"
 					width="403" height="284"
 					cpuReset="onCPUReset(event)"
 					frameRateInfo="onFrameRateInfo(event)"

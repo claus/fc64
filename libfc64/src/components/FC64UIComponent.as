@@ -1,7 +1,7 @@
 /*
  * Copyright notice
  *
- * (c) 2005-2006 Darron Schall, Claus Wahlers.  All rights reserved.
+ * (c) 2005-2010 Darron Schall, Claus Wahlers.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,36 +18,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
-package components
+package components 
 {
-	import mx.core.UIComponent;
+	import c64.events.DebuggerEvent;
+	import c64.events.FrameRateInfoEvent;
+	import c64.memory.MemoryManager;
+	import c64.screen.Renderer;
+	
+	import core.cpu.CPU6502;
+	import core.events.CPUResetEvent;
+	
 	import flash.utils.ByteArray;
-	import flash.events.*;
-	import core.events.*;
-	import core.cpu.*;
-	import c64.memory.*;
-	import c64.screen.*;
-	import c64.events.*;
-	import flash.display.DisplayObject;
+	
+	import mx.core.ByteArrayAsset;
+	import mx.core.UIComponent;
+	import mx.events.FlexEvent;
 	
 	[Event( name="cpuReset", type="core.events.CPUResetEvent" )]
 	[Event( name="frameRateInfo", type="c64.events.FrameRateInfoEvent" )]
 	[Event( name="stop", type="c64.events.DebuggerEvent" )]
 	
-	public class FC64 extends UIComponent
+	/**
+	 *
+	 */
+	public class FC64UIComponent extends UIComponent
 	{
-		
-		[Embed( source="/assets/kernal.901227-03.bin", mimeType="application/octet-stream" )]
-		private const ROMKernel:Class;
-		
-		[Embed( source="/assets/basic.901226-01.bin", mimeType="application/octet-stream" )]
-		private const ROMBasic:Class;
-		
-		[Embed( source="/assets/characters.901225-01.bin", mimeType="application/octet-stream" )]
-		private const ROMChar:Class;
-		
-		public var listenerTarget:DisplayObject;
 		
 		private var _cpu:CPU6502;
 		
@@ -55,17 +50,19 @@ package components
 		
 		private var _renderer:Renderer;
 		
-		
-		public function FC64()
+		/**
+		 * Constuctor
+		 */
+		public function FC64UIComponent()
 		{
 			super();
 			
-			addEventListener( "initialize", onInitialize );
+			addEventListener( FlexEvent.INITIALIZE, onInitialize );
 			
-			// cast embedded roms to bytearrays
-			var romKernel:ByteArray = new ROMKernel() as ByteArray;
-			var romBasic:ByteArray = new ROMBasic() as ByteArray;
-			var romChar:ByteArray = new ROMChar() as ByteArray;
+			// cast embedded roms to bytearrays 
+			var romKernel:ByteArray = new ROMEmbeds.KERNEL() as ByteArrayAsset;
+			var romBasic:ByteArray = new ROMEmbeds.BASIC() as ByteArrayAsset;
+			var romChar:ByteArray = new ROMEmbeds.CHAR() as ByteArrayAsset;
 			
 			// create and initialize memory manager
 			_mem = new MemoryManager();
@@ -82,66 +79,99 @@ package components
 			_cpu.setBreakpoint( 0xA483, 255 );
 		}
 		
+		/**
+		 *
+		 */
 		override protected function createChildren():void
 		{
 			super.createChildren();
+			
 			if ( !_renderer )
 			{
 				// create renderer
 				_renderer = new Renderer( _cpu, _mem );
+				_renderer.width = 403;
+				_renderer.height = 284;
 				_renderer.addEventListener( "frameRateInfoInternal", onFrameRateInfo );
 				_renderer.addEventListener( "stopInternal", onStop );
 				addChild( _renderer );
 			}
 		}
 		
+		/**
+		 *
+		 */
 		override protected function measure():void
 		{
-			super.measure();
 			measuredWidth = 403;
 			measuredMinWidth = 403;
+			
 			measuredHeight = 284;
 			measuredMinHeight = 284;
 		}
 		
-		private function onInitialize( eventObj:Event ):void
+		/**
+		 *
+		 */
+		private function onInitialize( e:FlexEvent ):void
 		{
+			removeEventListener( FlexEvent.INITIALIZE, onInitialize );
+			
 			// Initialize and enable keyboard
 			_mem.cia1.keyboard.initialize( _cpu, systemManager.stage );
 			_mem.cia1.keyboard.enabled = true;
+			
 			// Start renderer
 			_renderer.start();
 		}
 		
-		private function onCPUReset( e:CPUResetEvent ):void
+		/**
+		 *
+		 */
+		protected function onCPUReset( e:CPUResetEvent ):void
 		{
-			dispatchEvent( new CPUResetEvent( "cpuReset", e.pcOld, e.pcNew ) );
+			dispatchEvent( new CPUResetEvent( CPUResetEvent.CPU_RESET, e.pcOld, e.pcNew ) );
 		}
 		
-		private function onFrameRateInfo( e:FrameRateInfoEvent ):void
+		/**
+		 *
+		 */
+		protected function onFrameRateInfo( e:FrameRateInfoEvent ):void
 		{
-			dispatchEvent( new FrameRateInfoEvent( "frameRateInfo", e.frameTime ) );
+			dispatchEvent( new FrameRateInfoEvent( FrameRateInfoEvent.FRAMERATE_INFO, e.frameTime ) );
 		}
 		
-		private function onStop( e:DebuggerEvent ):void
+		/**
+		 *
+		 */
+		protected function onStop( e:DebuggerEvent ):void
 		{
-			dispatchEvent( new DebuggerEvent( "stop", e.breakpointType ) );
+			dispatchEvent( new DebuggerEvent( DebuggerEvent.STOP, e.breakpointType ) );
 		}
 		
-		
+		/**
+		 *
+		 */
 		public function get cpu():CPU6502
 		{
 			return _cpu;
 		}
 		
+		/**
+		 *
+		 */
 		public function get mem():MemoryManager
 		{
 			return _mem;
 		}
 		
+		/**
+		 *
+		 */
 		public function get renderer():Renderer
 		{
 			return _renderer;
 		}
 	}
 }
+

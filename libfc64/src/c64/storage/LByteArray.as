@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-package storage
+package c64.storage
 {
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
-
+	
 	public class LByteArray extends ByteArray
 	{
 		public function LByteArray()
@@ -32,3 +32,4 @@ package storage
 		}
 	}
 }
+

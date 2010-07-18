@@ -18,21 +18,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-package storage
+package c64.storage
 {
 	import flash.utils.ByteArray;
 	
 	public class Tape extends CommodoreImage
 	{
- 		public var data:ByteArray;
+		public var data:ByteArray;
 		public var fileExt:String;
 		public var fileSig:String; 
-		      
+		
 		/*
-		 *   P H Y S I C A L   D A T A 
+		 *   P H Y S I C A L   D A T A
 		 */
 		public var EXTENSION:String;
-
+		
 		public var SIGNATURE_OFFSET:int = 0;
 		public var SIGNATURE_LENGTH:int = 0;
 		
@@ -42,7 +42,7 @@ package storage
 		public var IMAGE_NAME_OFFSET:int = 0;
 		public var IMAGE_NAME_LENGTH:int = 0;		
 		/*
-		 *   END   P H Y S I C A L   D A T A 
+		 *   END   P H Y S I C A L   D A T A
 		 */
 		
 		public function Tape( fn:String=null )
@@ -59,3 +59,4 @@ package storage
 		}
 	}
 }
+

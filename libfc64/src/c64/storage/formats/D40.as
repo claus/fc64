@@ -18,24 +18,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-package storage.formats
+package c64.storage.formats
 /**
  *
  *   D40 format
- * 
- * This is a test format using programmatic configuration.  
- * 
- * Its configuration has a BAM which can address the largest possible storage 
- * space and still fit into the header sector: a 228 byte BAM, addressing 25 
+ *
+ * This is a test format using programmatic configuration.
+ *
+ * Its configuration has a BAM which can address the largest possible storage
+ * space and still fit into the header sector: a 228 byte BAM, addressing 25
  * tracks of 64 sectors each, for a total of 1600 sectors, or 400kb.
- * 
+ *
  * Its header, directory, and BAM are all on track 18, the BAM shares sector 0
- * with the header, and the directory begins on sector 1, just like the D64.  
+ * with the header, and the directory begins on sector 1, just like the D64.
  * All interleaves are 1, the disk name offset is 0x04, and the BAM data starts
  * at 0x1C.
  */
 {
-	import storage.CMD;
+	import c64.storage.CMD;
 	
 	public class D40 extends CMD implements Storable
 	{
@@ -48,3 +48,4 @@ package storage.formats
 		}	
 	}
 }
+

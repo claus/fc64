@@ -2,12 +2,10 @@ package
 {
 	import c64.events.DebuggerEvent;
 	import c64.events.FrameRateInfoEvent;
-	import c64.memory.MemoryManager;
-	import c64.screen.Renderer;
 	
-	import core.cpu.CPU6502;
+	import components.FC64Sprite;
+	
 	import core.events.CPUResetEvent;
-	import core.events.OSInitializedEvent;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -16,29 +14,13 @@ package
 	import flash.events.Event;
 	import flash.events.StageOrientationEvent;
 	import flash.text.TextField;
-	import flash.utils.ByteArray;
-	
-	import mx.core.ByteArrayAsset;
 	
 	/**
 	 *
 	 */
 	public class FC64 extends Sprite
 	{
-		[Embed( source="/assets/kernal.901227-03.bin", mimeType="application/octet-stream" )]
-		private const ROMKernel:Class;
-		
-		[Embed( source="/assets/basic.901226-01.bin", mimeType="application/octet-stream" )]
-		private const ROMBasic:Class;
-		
-		[Embed( source="/assets/characters.901225-01.bin", mimeType="application/octet-stream" )]
-		private const ROMChar:Class;
-		
-		private var cpu:CPU6502;
-		
-		private var mem:MemoryManager;
-		
-		private var renderer:Renderer;
+		private var fc64:FC64Sprite;
 		
 		private var fpsDisplay:TextField;
 		
@@ -55,37 +37,11 @@ package
 		{
 			super();
 			
-			// cast embedded roms to bytearrays
-			var romKernel:ByteArray = new ROMKernel() as ByteArrayAsset;
-			var romBasic:ByteArray = new ROMBasic() as ByteArrayAsset;
-			var romChar:ByteArray = new ROMChar() as ByteArrayAsset;
-			
-			// create and initialize memory manager
-			mem = new MemoryManager();
-			mem.setMemoryBank( MemoryManager.MEMBANK_KERNAL, 0xe000, romKernel.length, romKernel );
-			mem.setMemoryBank( MemoryManager.MEMBANK_BASIC, 0xa000, romBasic.length, romBasic );
-			mem.setMemoryBank( MemoryManager.MEMBANK_CHARACTER, 0xd000, romChar.length, romChar );
-			
-			// create cpu
-			cpu = new CPU6502( mem );
-			// $A483 is the main Basic program loop
-			// set a breakpoint here so we know when the C64 is ready for action
-			cpu.addEventListener( "cpuResetInternal", onCPUReset );
-			cpu.setBreakpoint( 0xA483, 255 );
-			
-			// create renderer
-			renderer = new Renderer( cpu, mem );
-			renderer.x = 0;
-			renderer.y = 0;
-			renderer.width = 403;
-			renderer.height = 284;
-			renderer.addEventListener( "frameRateInfoInternal", onFrameRateInfo );
-			renderer.addEventListener( "stopInternal", onStop );
-			addChild( renderer );
-			
-			// Initialize and enable keyboard
-			mem.cia1.keyboard.initialize( cpu, stage );
-			mem.cia1.keyboard.enabled = true;
+			fc64 = new FC64Sprite();
+			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
+			fc64.addEventListener( FrameRateInfoEvent.FRAMERATE_INFO, onFrameRateInfo );
+			fc64.addEventListener( DebuggerEvent.STOP, onStop );
+			addChild( fc64 );
 			
 			// Create text field for fps display
 			fpsDisplay = new TextField();
@@ -100,7 +56,7 @@ package
 			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
 			
 			// Start renderer
-			renderer.start();
+			fc64.renderer.start();
 		}
 		
 		/**
@@ -153,7 +109,7 @@ package
 		 */
 		private function onCPUReset( e:CPUResetEvent ):void
 		{
-			cpu.setBreakpoint( 0xA483, 255 );
+			fc64.cpu.setBreakpoint( 0xA483, 255 );
 		}
 		
 		/**
@@ -192,7 +148,7 @@ package
 //					software.enabled = true;
 //				}
 				
-				renderer.start();
+				fc64.renderer.start();
 			}
 		}
 		
@@ -209,7 +165,7 @@ package
 //			var addr:int = startAddress;
 //			for ( var i:uint = 0x02; i < ba.length; i++ )
 //			{
-//				mem.write( addr++, ba[ i ] );
+//				fc64.mem.write( addr++, ba[ i ] );
 //			}
 //			if ( startAddress == 0x0801 )
 //			{
@@ -218,11 +174,11 @@ package
 //				if ( charsInBuffer < fc64.mem.read( 0x0289 ) - 4 )
 //				{
 //					var keyboardBuffer:uint = 0x0277 + charsInBuffer + 1;
-//					mem.write( keyboardBuffer++, 82 ); // R
-//					mem.write( keyboardBuffer++, 85 ); // U
-//					mem.write( keyboardBuffer++, 78 ); // N
-//					mem.write( keyboardBuffer++, 13 ); // Return
-//					mem.write( 0xc6, charsInBuffer + 5 );
+//					fc64.mem.write( keyboardBuffer++, 82 ); // R
+//					fc64.mem.write( keyboardBuffer++, 85 ); // U
+//					fc64.mem.write( keyboardBuffer++, 78 ); // N
+//					fc64.mem.write( keyboardBuffer++, 13 ); // Return
+//					fc64.mem.write( 0xc6, charsInBuffer + 5 );
 //				}
 //			}
 //			else
