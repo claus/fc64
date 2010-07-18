@@ -20,24 +20,39 @@
 
 package c64.screen
 {
-	import flash.display.*;
-	import flash.utils.*;
-	import flash.events.*;
-	import flash.geom.*;
-	import core.memory.*;
-	import core.misc.*;
-	import core.cpu.*;
+	import c64.events.*;
 	import c64.memory.*;
-	import c64.events.*
-	import core.exceptions.BreakpointException;
-//	import c64.sid.SIDRenderer;
 	import c64.memory.io.CIA1;
 	import c64.memory.io.VICSpriteInfo;
 	
-	[Event( name="frameRateInfoInternal", type="c64.events.FrameRateInfoEvent" )]
-	[Event( name="rasterInternal", type="c64.events.RasterEvent" )]
-	[Event( name="stopInternal", type="c64.events.DebuggerEvent" )]
+	import core.cpu.*;
+	import core.exceptions.BreakpointException;
+	import core.memory.*;
+	import core.misc.*;
 	
+	import flash.display.*;
+	import flash.events.*;
+	import flash.geom.*;
+	import flash.utils.*;
+	
+	/**
+	 * @eventType c64.events.FrameRateInfoEvent.FRAME_RATE_INFO
+	 */
+	[Event( name="frameRateInfo", type="c64.events.FrameRateInfoEvent" )]
+	
+	/**
+	 * @eventType c64.events.RasterEvent.RASTER
+	 */
+	[Event( name="raster", type="c64.events.RasterEvent" )]
+	
+	/**
+	 * @eventType c64.events.DebuggerEvent.STOP
+	 */
+	[Event( name="stop", type="c64.events.DebuggerEvent" )]
+	
+	/**
+	 *
+	 */
 	public class Renderer extends Sprite
 	{
 		private var cpu:CPU6502;
@@ -137,7 +152,7 @@ package c64.screen
 				frameTimer.stop();
 				if ( breakpointType != 0 )
 				{
-					dispatchEvent( new DebuggerEvent( "stopInternal", breakpointType ) );
+					dispatchEvent( new DebuggerEvent( DebuggerEvent.STOP, breakpointType ) );
 				}
 			}
 		}
@@ -173,7 +188,7 @@ package c64.screen
 			displayFore.lock();
 			displayBorder.lock();
 			
-			dispatchEvent( new RasterEvent( "rasterInternal", 0xffff ) );
+			dispatchEvent( new RasterEvent( RasterEvent.RASTER, 0xffff ) );
 			
 			while ( raster < 312 )
 			{
@@ -181,7 +196,7 @@ package c64.screen
 				var cyclesRasterIRQ:uint = checkRaster();
 				if ( cyclesRasterIRQ != 0 )
 				{
-					dispatchEvent( new RasterEvent( "rasterInternal", raster ) );
+					dispatchEvent( new RasterEvent( RasterEvent.RASTER, raster ) );
 				}
 				
 				try
@@ -238,7 +253,7 @@ package c64.screen
 				fpsSum += ( getTimer() - t );
 				if ( ++fpsCount == _frameRateInfoEventInterval )
 				{
-					dispatchEvent( new FrameRateInfoEvent( "frameRateInfoInternal", fpsSum / _frameRateInfoEventInterval ) );
+					dispatchEvent( new FrameRateInfoEvent( FrameRateInfoEvent.FRAME_RATE_INFO, fpsSum / _frameRateInfoEventInterval ) );
 					fpsCount = 0;
 					fpsSum = 0;
 				}
@@ -822,3 +837,5 @@ package c64.screen
 		}
 	}
 }
+
+

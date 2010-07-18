@@ -11,7 +11,7 @@ package c64.events
 		/**
 		 * Defines the value of the type property of a FrameRateInfoEvent object.
 		 */
-		public static const FRAMERATE_INFO:String = "frameRateInfo";
+		public static const FRAME_RATE_INFO:String = "frameRateInfo";
 		
 		
 		public function FrameRateInfoEvent( type:String, frameTime:Number )
@@ -33,3 +33,5 @@ package c64.events
 		}
 	}
 }
+
+

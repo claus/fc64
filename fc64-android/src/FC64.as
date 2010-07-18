@@ -63,16 +63,16 @@ package
 		 */
 		private function init():void
 		{
-			// Pass the native application through as the keyboard listener
-			fc64 = new FC64Sprite( NativeApplication.nativeApplication );
-			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
-			fc64.addEventListener( FrameRateInfoEvent.FRAMERATE_INFO, onFrameRateInfo );
-			fc64.addEventListener( DebuggerEvent.STOP, onStop );
-			addChild( fc64 );
-			
 			// Create text field for fps display
 			fpsDisplay = new TextField();
 			addChild( fpsDisplay );
+			
+			// Pass the native application through as the keyboard listener
+			fc64 = new FC64Sprite( NativeApplication.nativeApplication /* fpsDisplay */ );
+			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
+			fc64.addEventListener( FrameRateInfoEvent.FRAME_RATE_INFO, onFrameRateInfo );
+			fc64.addEventListener( DebuggerEvent.STOP, onStop );
+			addChild( fc64 );
 			
 			// Start up in portrait mode initially
 			alignPortrait();
@@ -82,7 +82,7 @@ package
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
 			stage.addEventListener( Event.RESIZE, onResizeChange );
-			//stage.focus = fc64.renderer;
+			//stage.focus = fpsDisplay;// fc64.renderer;
 			
 			// Start renderer
 			fc64.renderer.start();
@@ -159,7 +159,7 @@ package
 		}
 		
 		/**
-		 * 
+		 *
 		 */
 		private function onResizeChange( event:Event ):void
 		{

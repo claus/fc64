@@ -21,14 +21,22 @@
 package core.cpu
 {
 	import core.cpu.CPUOpcodeInfo;
-	import core.memory.IMemoryManager;
-	import core.misc.Convert;
 	import core.events.*;
 	import core.exceptions.*;
-	import flash.utils.*;
-	import flash.events.*;
+	import core.memory.IMemoryManager;
+	import core.misc.Convert;
 	
-	[Event( name="cpuResetInternal", type="c64.events.CPUResetEvent" )]
+	import flash.events.*;
+	import flash.utils.*;
+	
+	/**
+	 * @eventType c64.events.CPUResetEvent.CPU_RESET
+	 */
+	[Event( name="cpuReset", type="c64.events.CPUResetEvent" )]
+	
+	/**
+	 *
+	 */
 	public class CPU6502 implements IEventDispatcher
 	{
 		/** 6502 accumulator (8 bits) */
@@ -184,7 +192,7 @@ package core.cpu
 			// read the reset vector for pc address
 			pc = memory.readWord( 0xFFFC );
 			// fire event
-			dispatchEvent( new CPUResetEvent( "cpuResetInternal", pcOld, pc ) );
+			dispatchEvent( new CPUResetEvent( CPUResetEvent.CPU_RESET, pcOld, pc ) );
 		}
 		
 		/**
@@ -1625,3 +1633,5 @@ package core.cpu
 		}
 	}
 }
+
+

@@ -34,8 +34,19 @@ package components
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
 	
+	/**
+	 * @eventType c64.events.CPUResetEvent.CPU_RESET
+	 */
 	[Event( name="cpuReset", type="core.events.CPUResetEvent" )]
+	
+	/**
+	 * @eventType c64.events.FrameRateInfoEvent.FRAME_RATE_INFO
+	 */
 	[Event( name="frameRateInfo", type="c64.events.FrameRateInfoEvent" )]
+	
+	/**
+	 * @eventType c64.events.DebuggerEvent.STOP
+	 */
 	[Event( name="stop", type="c64.events.DebuggerEvent" )]
 	
 	/**
@@ -75,7 +86,7 @@ package components
 			
 			// $A483 is the main Basic program loop
 			// set a breakpoint here so we know when the C64 is ready for action
-			_cpu.addEventListener( "cpuResetInternal", onCPUReset );
+			_cpu.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
 			_cpu.setBreakpoint( 0xA483, 255 );
 		}
 		
@@ -92,8 +103,8 @@ package components
 				_renderer = new Renderer( _cpu, _mem );
 				_renderer.width = 403;
 				_renderer.height = 284;
-				_renderer.addEventListener( "frameRateInfoInternal", onFrameRateInfo );
-				_renderer.addEventListener( "stopInternal", onStop );
+				_renderer.addEventListener( FrameRateInfoEvent.FRAME_RATE_INFO, onFrameRateInfo );
+				_renderer.addEventListener( DebuggerEvent.STOP, onStop );
 				addChild( _renderer );
 			}
 		}
@@ -128,25 +139,25 @@ package components
 		/**
 		 *
 		 */
-		protected function onCPUReset( e:CPUResetEvent ):void
+		protected function onCPUReset( event:CPUResetEvent ):void
 		{
-			dispatchEvent( new CPUResetEvent( CPUResetEvent.CPU_RESET, e.pcOld, e.pcNew ) );
+			dispatchEvent( event );
 		}
 		
 		/**
 		 *
 		 */
-		protected function onFrameRateInfo( e:FrameRateInfoEvent ):void
+		protected function onFrameRateInfo( event:FrameRateInfoEvent ):void
 		{
-			dispatchEvent( new FrameRateInfoEvent( FrameRateInfoEvent.FRAMERATE_INFO, e.frameTime ) );
+			dispatchEvent( event );
 		}
 		
 		/**
 		 *
 		 */
-		protected function onStop( e:DebuggerEvent ):void
+		protected function onStop( event:DebuggerEvent ):void
 		{
-			dispatchEvent( new DebuggerEvent( DebuggerEvent.STOP, e.breakpointType ) );
+			dispatchEvent( event );
 		}
 		
 		/**
