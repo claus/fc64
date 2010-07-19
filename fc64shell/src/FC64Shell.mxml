@@ -56,6 +56,9 @@
 			
 			private var state:String = "normal";
 			
+			/**
+			 *
+			 */
 			private function menuHandler( event:MenuEvent ):void
 			{
 				// Look up the command to execute based on the command name given
@@ -77,23 +80,35 @@
 			
 			}
 			
+			/**
+			 *
+			 */
 			private function onLoad():void
 			{
 				state = "loading";
 				fc64.cpu.reset();
 			}
 			
+			/**
+			 *
+			 */
 			private function onSoftwareTreeChange( event:Event ):void
 			{
 				loadButton.enabled = ( software.selectedIndex != -1 );
 			}
 			
+			/**
+			 *
+			 */
 			private function onCPUReset( e:CPUResetEvent ):void
 			{
 				software.enabled = false;
 				fc64.cpu.setBreakpoint( 0xA483, 255 );
 			}
 			
+			/**
+			 *
+			 */
 			private function onStop( e:DebuggerEvent ):void
 			{
 				if ( e.breakpointType == 255 )
@@ -115,22 +130,42 @@
 				}
 			}
 			
+			/**
+			 *
+			 */
 			private function onOSInitialized( e:OSInitializedEvent ):void
 			{
 			}
 			
+			/**
+			 *
+			 */
 			private function onLoadPRG( e:Event ):void
 			{
-				var ba:ByteArray = ByteArray( e.target.data );
+				loadProgram( ByteArray( e.target.data ) );
+				
+				software.enabled = true;
+				software.selectedIndex = -1;
+				loadButton.enabled = false;
+				state = "normal";
+			}
+			
+			/**
+			 *
+			 */
+			private function loadProgram( ba:ByteArray ):void
+			{
 				// get start address
 				ba.endian = Endian.LITTLE_ENDIAN;
 				var startAddress:int = ba.readShort();
+				
 				// copy contents
 				var addr:int = startAddress;
 				for ( var i:uint = 0x02; i < ba.length; i++ )
 				{
 					fc64.mem.write( addr++, ba[ i ] );
 				}
+				
 				if ( startAddress == 0x0801 )
 				{
 					// run command
@@ -149,12 +184,11 @@
 				{
 					fc64.cpu.pc = startAddress;
 				}
-				software.enabled = true;
-				software.selectedIndex = -1;
-				loadButton.enabled = false;
-				state = "normal";
 			}
 			
+			/**
+			 *
+			 */
 			private function onFrameRateInfo( e:FrameRateInfoEvent ):void
 			{
 				fc64Panel.status = e.frameTime + " ms/frame, " + e.fps + " fps";
@@ -206,9 +240,9 @@
 
 				<components:FC64UIComponent id="fc64"
 					width="403" height="284"
-					cpuReset="onCPUReset(event)"
-					frameRateInfo="onFrameRateInfo(event)"
-					stop="onStop(event)" />
+					cpuReset="onCPUReset( event );"
+					frameRateInfo="onFrameRateInfo( event );"
+					stop="onStop( event );" />
 
 			</s:BorderContainer>
 		</mx:Panel>
@@ -232,27 +266,27 @@
 							<fx:Object name="Galaga"
 								type="Game"
 								filetype="PRG"
-								filename="roms/GALAGA.PRG" />
+								filename="assets/roms/GALAGA.PRG" />
 							<fx:Object name="Galaga Color"
 								type="Game"
 								filetype="PRG"
-								filename="roms/COLOURGALAGA.PRG" />
+								filename="assets/roms/COLOURGALAGA.PRG" />
 							<fx:Object name="Elite"
 								type="1337"
 								filetype="PRG"
-								filename="roms/ELITE.PRG" />
+								filename="assets/roms/ELITE.PRG" />
 							<fx:Object name="Hellgate"
 								type="Game"
 								filetype="PRG"
-								filename="roms/HELLGATE.PRG" />
+								filename="assets/roms/HELLGATE.PRG" />
 							<fx:Object name="Matrix"
 								type="Game"
 								filetype="PRG"
-								filename="roms/MATRIX.PRG" />
+								filename="assets/roms/MATRIX.PRG" />
 							<fx:Object name="Voidrunner"
 								type="Game"
 								filetype="PRG"
-								filename="roms/VOIDRUNNER.PRG" />
+								filename="assets/roms/VOIDRUNNER.PRG" />
 						</mx:source>
 					</mx:ArrayCollection>
 				</mx:dataProvider>
@@ -280,7 +314,7 @@
 				<s:Button id="loadButton"
 					enabled="false"
 					label="Load"
-					click="onLoad()" />
+					click="onLoad();" />
 			</s:controlBarContent>
 
 		</s:Panel>

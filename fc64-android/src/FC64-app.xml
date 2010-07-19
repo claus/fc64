@@ -89,7 +89,7 @@
 
 		<aspectRatio>portrait</aspectRatio>
 		<autoOrients>true</autoOrients>
-		<fullScreen>true</fullScreen>
+		<!-- <fullScreen>true</fullScreen> -->
 	</initialWindow>
 
 	<!-- We recommend omitting the supportedProfiles element, -->

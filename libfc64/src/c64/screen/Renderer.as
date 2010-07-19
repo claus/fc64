@@ -40,10 +40,10 @@ package c64.screen
 	 */
 	[Event( name="frameRateInfo", type="c64.events.FrameRateInfoEvent" )]
 	
-	/**
-	 * @eventType c64.events.RasterEvent.RASTER
-	 */
-	[Event( name="raster", type="c64.events.RasterEvent" )]
+//	/**
+//	 * @eventType c64.events.RasterEvent.RASTER
+//	 */
+//	[Event( name="raster", type="c64.events.RasterEvent" )]
 	
 	/**
 	 * @eventType c64.events.DebuggerEvent.STOP
@@ -188,7 +188,7 @@ package c64.screen
 			displayFore.lock();
 			displayBorder.lock();
 			
-			dispatchEvent( new RasterEvent( RasterEvent.RASTER, 0xffff ) );
+//			dispatchEvent( new RasterEvent( RasterEvent.RASTER, 0xffff ) );
 			
 			while ( raster < 312 )
 			{
@@ -196,7 +196,7 @@ package c64.screen
 				var cyclesRasterIRQ:uint = checkRaster();
 				if ( cyclesRasterIRQ != 0 )
 				{
-					dispatchEvent( new RasterEvent( RasterEvent.RASTER, raster ) );
+//					dispatchEvent( new RasterEvent( RasterEvent.RASTER, raster ) );
 				}
 				
 				try
@@ -250,13 +250,13 @@ package c64.screen
 			
 			if ( frameTimer.running )
 			{
-				fpsSum += ( getTimer() - t );
-				if ( ++fpsCount == _frameRateInfoEventInterval )
-				{
-					dispatchEvent( new FrameRateInfoEvent( FrameRateInfoEvent.FRAME_RATE_INFO, fpsSum / _frameRateInfoEventInterval ) );
-					fpsCount = 0;
-					fpsSum = 0;
-				}
+//				fpsSum += ( getTimer() - t );
+//				if ( ++fpsCount == _frameRateInfoEventInterval )
+//				{
+//					dispatchEvent( new FrameRateInfoEvent( FrameRateInfoEvent.FRAME_RATE_INFO, fpsSum / _frameRateInfoEventInterval ) );
+//					fpsCount = 0;
+//					fpsSum = 0;
+//				}
 				event.updateAfterEvent();
 				raster = 0;
 			}

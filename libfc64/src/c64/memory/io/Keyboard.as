@@ -32,7 +32,7 @@ package c64.memory.io
 	public class Keyboard
 	{
 		/** Reference to the cpu so we can trigger NMI */
-		private var cpu:CPU6502;
+		private var _cpu:CPU6502;
 		
 		/** 64 bit mask indicating what keys are down */
 		private var keyBits:Array; // of 2 int values
@@ -52,12 +52,6 @@ package c64.memory.io
 		private var _enabled:Boolean = false;
 		
 		/**
-		 * Target that dispatches keyboard events.
-		 */
-		private var listenerTarget:EventDispatcher;
-		
-		
-		/**
 		 * Constructor
 		 */
 		public function Keyboard()
@@ -74,40 +68,10 @@ package c64.memory.io
 		 * Initialization
 		 *
 		 * @param cpu The CPU that an NMI can be triggered on
-		 * @param listenerTarget The area to listen to for key press/release events
 		 */
-		public function initialize( cpu:CPU6502, listenerTarget:EventDispatcher ):void
+		public function set cpu( value:CPU6502 ):void
 		{
-			enabled = false;
-			
-			this.cpu = cpu;
-			this.listenerTarget = listenerTarget;
-		}
-		
-		public function get enabled():Boolean
-		{
-			return _enabled;
-		}
-		
-		public function set enabled( value:Boolean ):void
-		{
-			if ( _enabled != value )
-			{
-				_enabled = value;
-				if ( listenerTarget != null )
-				{
-					if ( _enabled )
-					{
-						listenerTarget.addEventListener( KeyboardEvent.KEY_DOWN, keyDown, false, 0, true );
-						listenerTarget.addEventListener( KeyboardEvent.KEY_UP, keyUp, false, 0, true );
-					}
-					else
-					{
-						listenerTarget.removeEventListener( KeyboardEvent.KEY_DOWN, keyDown );
-						listenerTarget.removeEventListener( KeyboardEvent.KEY_UP, keyUp );
-					}
-				}
-			}
+			this._cpu = value;
 		}
 		
 		/**
@@ -217,30 +181,41 @@ package c64.memory.io
 			keyMatrixLocations[ flash.ui.Keyboard.F7 ] = [ 3, 0 ];
 		}
 		
-		private function keyDown( event:KeyboardEvent ):void
+		/**
+		 *
+		 */
+		public function pressKey( keyCode:int ):void
 		{
-			var keyCode:int = event.keyCode;
-			
 			switch ( keyCode )
 			{
 				case flash.ui.Keyboard.PAGE_UP:
-					cpu.NMI();
+					_cpu.NMI();
 					break;
+				
 				case flash.ui.Keyboard.SHIFT:
 					shiftDown = true;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_8:
+				case flash.ui.Keyboard.UP:
 					joystickMask |= 0x01;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_2:
+				case flash.ui.Keyboard.DOWN:
 					joystickMask |= 0x02;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_4:
+				case flash.ui.Keyboard.LEFT:
 					joystickMask |= 0x04;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_6:
+				case flash.ui.Keyboard.RIGHT:
 					joystickMask |= 0x08;
 					break;
+				
 				case flash.ui.Keyboard.SPACE:
 					joystickMask |= 0x10;
 					break;
@@ -259,27 +234,37 @@ package c64.memory.io
 			}
 		}
 		
-		private function keyUp( event:KeyboardEvent ):void
+		/**
+		 *
+		 */
+		public function releaseKey( keyCode:int ):void
 		{
-			var keyCode:int = event.keyCode;
-			
 			switch ( keyCode )
 			{
 				case flash.ui.Keyboard.SHIFT:
 					shiftDown = false;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_8:
+				case flash.ui.Keyboard.UP:
 					joystickMask &= ~0x01;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_2:
+				case flash.ui.Keyboard.DOWN:
 					joystickMask &= ~0x02;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_4:
+				case flash.ui.Keyboard.LEFT:
 					joystickMask &= ~0x04;
 					break;
+				
 				case flash.ui.Keyboard.NUMPAD_6:
+				case flash.ui.Keyboard.RIGHT:
 					joystickMask &= ~0x08;
 					break;
+				
 				case flash.ui.Keyboard.SPACE:
 					joystickMask &= ~0x10;
 					break;

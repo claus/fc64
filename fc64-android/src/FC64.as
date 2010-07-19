@@ -21,6 +21,12 @@ package
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.ui.Keyboard;
+	import flash.utils.ByteArray;
+	import flash.utils.Endian;
+	import flash.utils.getTimer;
+	import flash.utils.setTimeout;
+	
+	import mx.core.ByteArrayAsset;
 	
 	/**
 	 *
@@ -32,14 +38,37 @@ package
 		private var fpsDisplay:TextField;
 		
 		/**
+		 * The amount of time (in ms) to wait before we similate a press and
+		 * release of a key so that it registers in the FC64 cpu.
+		 */
+		private static const FC64_CPU_KEY_REGISTER_DELAY:int = 200;
+		
+		/**
+		 * The timing threshold that we use to determine if a keyDown/keyUp event
+		 * handling sequence is coming from the keyboard (when the time between
+		 * event handlers is less than this delay) or the trackball (when the
+		 * time between is greater than the delay).
+		 */
+		private static const VIRTUAL_KEY_DELAY_THRESHOLD:int = 10;
+		
+		
+		// FIXME: Remove this and let the user select roms from SD card
+		[Embed( source="/assets/roms/COLOURGALAGA.PRG", mimeType="application/octet-stream" )]
+		public static const GALAGA_COLOR:Class;
+		
+		private var romLoaded:Boolean = false;
+		
+		/**
 		 *
 		 */
+		// TODO: We can probably replace with a getter that checks
+		// stage.deviceOrientation against StageOrientation constants
 		private var isPortrait:Boolean = true;
 		
 		/**
 		 * Constructor
 		 */
-		//[SWF( width="480", height="800", frameRate="60" )]
+		[SWF( width="480", height="800", frameRate="60" )]
 		public function FC64()
 		{
 			super();
@@ -50,8 +79,6 @@ package
 //			NativeApplication.nativeApplication.addEventListener( InvokeEvent.INVOKE, onInvoke );
 //			NativeApplication.nativeApplication.addEventListener( Event.ACTIVATE, onActivate );
 			NativeApplication.nativeApplication.addEventListener( Event.DEACTIVATE, onDeactivate );
-			
-//			NativeApplication.nativeApplication.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
 			
 			init();
 		
@@ -82,7 +109,6 @@ package
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
 			stage.addEventListener( Event.RESIZE, onResizeChange );
-			//stage.focus = fpsDisplay;// fc64.renderer;
 			
 			// Start renderer
 			fc64.renderer.start();
@@ -101,7 +127,8 @@ package
 		 */
 		private function onAddedToStage( event:Event ):void
 		{
-			fc64.mem.cia1.keyboard.enabled = true;
+			stage.addEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+			stage.addEventListener( KeyboardEvent.KEY_UP, onKeyUp );
 		}
 		
 		/**
@@ -109,7 +136,8 @@ package
 		 */
 		private function onRemovedFromStage( event:Event ):void
 		{
-			fc64.mem.cia1.keyboard.enabled = false;
+			stage.removeEventListener( KeyboardEvent.KEY_DOWN, onKeyDown );
+			stage.removeEventListener( KeyboardEvent.KEY_UP, onKeyUp );
 		}
 		
 		/**
@@ -118,7 +146,6 @@ package
 		private function onActivate( event:Event ):void
 		{
 //			fc64.renderer.start();
-//			fc64.mem.cia1.keyboard.enabled = true;
 		}
 		
 		/**
@@ -129,8 +156,6 @@ package
 //			fc64.renderer.stop();
 			
 			NativeApplication.nativeApplication.exit();
-		
-//			fc64.mem.cia1.keyboard.enabled = false;
 		}
 		
 		/**
@@ -215,20 +240,91 @@ package
 			fpsDisplay.height = 60;
 		}
 		
+		protected var keyDownTime:int;
+		
 		/**
 		 *
 		 */
-		private function onKeyDown( event:KeyboardEvent ):void
+		protected function onKeyDown( event:KeyboardEvent ):void
 		{
-			if ( event.keyCode == Keyboard.BACK )
+			var keyCode:int = event.keyCode;
+			
+			if ( keyCode == Keyboard.BACK )
 			{
 				// If we want to handle the Back button differently, we can
 				// prevent the event and put our own logic here
-				//e.preventDefault();
+				event.preventDefault();
+				
+				// FIXME: This is temporary - Load galaga color into memory.  If already
+				// loaded then reset the CPU
+				if ( romLoaded )
+				{
+					// Reset the CPU
+					fc64.cpu.reset();
+					
+					romLoaded = false;
+				}
+				else
+				{
+					loadProgram( new GALAGA_COLOR() as ByteArrayAsset );
+					
+					romLoaded = true;
+				}
+				
+				
+				
 			}
-			else if ( event.keyCode == Keyboard.MENU )
+			else if ( keyCode == Keyboard.MENU )
 			{
-				// FIXME: Open menu with "reset" and rom selections
+				// FIXME: Open menu with "reset" and rom selections (file browser to load
+				// roms from arbitrary locations on SD card?).  
+			}
+			else
+			{
+				// Record when the key down happened, since when interacting with the
+				// keyboard we get a key down immediately followed by a key up, but
+				// when using the track ball we get a key down immediately on track ball 
+				// press and a key up on track ball release.  We can calculate the time 
+				// between keyDown and keyUp to differentiate pressing ENTER on the vritual
+				// keyboard and pressing the trackball.
+				keyDownTime = getTimer();
+			}
+		}
+		
+		/**
+		 *
+		 */
+		protected function onKeyUp( event:KeyboardEvent ):void
+		{
+			var keyUpTime:int = getTimer();
+			var keyCode:int = event.keyCode;
+			
+			if ( keyUpTime - keyDownTime < VIRTUAL_KEY_DELAY_THRESHOLD )
+			{
+				// We received an immedaite press and then release - interacting
+				// with the virtual keyboard we so need to release the key
+				// in fc64, but we have to do this after enough of a delay so
+				// that the fc64 internal cpu picks up the key press.
+				fc64.pressKey( keyCode );
+				setTimeout( fc64.releaseKey, FC64_CPU_KEY_REGISTER_DELAY, keyCode );
+			}
+			else if ( keyCode == Keyboard.ENTER )
+			{
+				// Delay between down and up, assuming it is coming from trackball
+				
+				// Turn the ENTER of the trackball into a space to better simulate
+				// joystick suppot.
+				keyCode = Keyboard.SPACE;
+				
+				// Press and release the key
+				fc64.pressKey( keyCode );
+				setTimeout( fc64.releaseKey, FC64_CPU_KEY_REGISTER_DELAY, keyCode );
+			}
+			else
+			{
+				// Too much of a delay between presses and not ENTER, so this is probably
+				// a long press and release on maybe the menu key or something.  We
+				// can ignore it.
 			}
 		}
 		
@@ -245,14 +341,14 @@ package
 		 */
 		private function onFrameRateInfo( event:FrameRateInfoEvent ):void
 		{
-			if ( isPortrait )
-			{
-				fpsDisplay.text = event.frameTime + " ms/frame " + event.fps + " fps";
-			}
-			else
-			{
-				fpsDisplay.text = event.frameTime + " ms\n  /frame\n\n" + event.fps + " fps";
-			}
+//			if ( isPortrait )
+//			{
+//				fpsDisplay.text = event.frameTime + " ms/frame " + event.fps + " fps";
+//			}
+//			else
+//			{
+//				fpsDisplay.text = event.frameTime + " ms\n  /frame\n\n" + event.fps + " fps";
+//			}
 		}
 		
 		/**
@@ -285,38 +381,47 @@ package
 		 */
 		private function onLoadPRG( event:Event ):void
 		{
-//			var ba:ByteArray = ByteArray( e.target.data );
-//			// get start address
-//			ba.endian = Endian.LITTLE_ENDIAN;
-//			var startAddress:int = ba.readShort();
-//			// copy contents
-//			var addr:int = startAddress;
-//			for ( var i:uint = 0x02; i < ba.length; i++ )
-//			{
-//				fc64.mem.write( addr++, ba[ i ] );
-//			}
-//			if ( startAddress == 0x0801 )
-//			{
-//				// run command
-//				var charsInBuffer:uint = fc64.mem.read( 0xc6 );
-//				if ( charsInBuffer < fc64.mem.read( 0x0289 ) - 4 )
-//				{
-//					var keyboardBuffer:uint = 0x0277 + charsInBuffer + 1;
-//					fc64.mem.write( keyboardBuffer++, 82 ); // R
-//					fc64.mem.write( keyboardBuffer++, 85 ); // U
-//					fc64.mem.write( keyboardBuffer++, 78 ); // N
-//					fc64.mem.write( keyboardBuffer++, 13 ); // Return
-//					fc64.mem.write( 0xc6, charsInBuffer + 5 );
-//				}
-//			}
-//			else
-//			{
-//				fc64.cpu.pc = startAddress;
-//			}
+//			loadProgram( ByteArray( e.target.data ) );
 //			software.enabled = true;
 //			software.selectedIndex = -1;
 //			loadButton.enabled = false;
 //			state = "normal";
+		}
+		
+		/**
+		 *
+		 */
+		private function loadProgram( ba:ByteArray ):void
+		{
+			// get start address
+			ba.endian = Endian.LITTLE_ENDIAN;
+			var startAddress:int = ba.readShort();
+			
+			// copy contents
+			var addr:int = startAddress;
+			for ( var i:uint = 0x02; i < ba.length; i++ )
+			{
+				fc64.mem.write( addr++, ba[ i ] );
+			}
+			
+			if ( startAddress == 0x0801 )
+			{
+				// run command
+				var charsInBuffer:uint = fc64.mem.read( 0xc6 );
+				if ( charsInBuffer < fc64.mem.read( 0x0289 ) - 4 )
+				{
+					var keyboardBuffer:uint = 0x0277 + charsInBuffer + 1;
+					fc64.mem.write( keyboardBuffer++, 82 ); // R
+					fc64.mem.write( keyboardBuffer++, 85 ); // U
+					fc64.mem.write( keyboardBuffer++, 78 ); // N
+					fc64.mem.write( keyboardBuffer++, 13 ); // Return
+					fc64.mem.write( 0xc6, charsInBuffer + 5 );
+				}
+			}
+			else
+			{
+				fc64.cpu.pc = startAddress;
+			}
 		}
 	
 //		private function onOSInitialized( event:OSInitializedEvent ):void

@@ -79,8 +79,7 @@ package components
 			addChild( _renderer );
 			
 			// Initialize and enable keyboard
-			_mem.cia1.keyboard.initialize( _cpu, keyboardListenerTarget == null ? stage : keyboardListenerTarget );
-			_mem.cia1.keyboard.enabled = true;
+			_mem.cia1.keyboard.cpu = _cpu;
 		}
 		
 		/**
@@ -129,6 +128,22 @@ package components
 		public function get renderer():Renderer
 		{
 			return _renderer;
+		}
+		
+		/**
+		 *
+		 */
+		public function pressKey( keyCode:int ):void
+		{
+			_mem.cia1.keyboard.pressKey( keyCode );
+		}
+		
+		/**
+		 *
+		 */
+		public function releaseKey( keyCode:int ):void
+		{
+			_mem.cia1.keyboard.releaseKey( keyCode );
 		}
 	}
 }

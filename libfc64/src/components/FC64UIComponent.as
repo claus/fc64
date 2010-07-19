@@ -28,11 +28,15 @@ package components
 	import core.cpu.CPU6502;
 	import core.events.CPUResetEvent;
 	
+	import flash.events.KeyboardEvent;
 	import flash.utils.ByteArray;
 	
 	import mx.core.ByteArrayAsset;
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
+	import mx.managers.IFocusManager;
+	import mx.managers.IFocusManagerComponent;
+	import mx.managers.IFocusManagerContainer;
 	
 	/**
 	 * @eventType c64.events.CPUResetEvent.CPU_RESET
@@ -52,7 +56,7 @@ package components
 	/**
 	 *
 	 */
-	public class FC64UIComponent extends UIComponent
+	public class FC64UIComponent extends UIComponent implements IFocusManagerComponent
 	{
 		
 		private var _cpu:CPU6502;
@@ -88,6 +92,9 @@ package components
 			// set a breakpoint here so we know when the C64 is ready for action
 			_cpu.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
 			_cpu.setBreakpoint( 0xA483, 255 );
+			
+			// Associate the cpu with the keyboard so we cna trigger NMI
+			_mem.cia1.keyboard.cpu = _cpu
 		}
 		
 		/**
@@ -127,10 +134,6 @@ package components
 		private function onInitialize( e:FlexEvent ):void
 		{
 			removeEventListener( FlexEvent.INITIALIZE, onInitialize );
-			
-			// Initialize and enable keyboard
-			_mem.cia1.keyboard.initialize( _cpu, systemManager.stage );
-			_mem.cia1.keyboard.enabled = true;
 			
 			// Start renderer
 			_renderer.start();
@@ -182,6 +185,22 @@ package components
 		public function get renderer():Renderer
 		{
 			return _renderer;
+		}
+		
+		/**
+		 *
+		 */
+		override protected function keyDownHandler( event:KeyboardEvent ):void
+		{
+			_mem.cia1.keyboard.pressKey( event.keyCode );
+		}
+		
+		/**
+		 *
+		 */
+		override protected function keyUpHandler( event:KeyboardEvent ):void
+		{
+			_mem.cia1.keyboard.releaseKey( event.keyCode );
 		}
 	}
 }
