@@ -124,6 +124,6 @@
 		</exec> 
 	</target>
 
-	<target name="android" depends="clean, init, compile, optimize, package-android, install-android" />
+	<target name="android" depends="clean, init, compile, package-android, install-android" />
 
 </project>
