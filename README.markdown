@@ -18,3 +18,14 @@ Building
 ------------------
 
 The *FLEX_HOME* environment variable must be set, and must point to a Flex SDK that includes the AIR 2.5 SDK.
+
+To compile and install the Android application, a few things need to happen:
+
+ 1. Build the libfc64.swc file.  There is no build script for this, but you can import this as a Library project into FlashBuilder to get a .swc file.
+ 2. Make sure the AIR Runtime is installed on your phone.
+ 3. Connect your phone to your computer
+ 4. Make sure you have a certificate available for code signing, and update the build.properties file with both the path to the certificate and the password.
+ 5. Navigate to the fc64-android directory and execute the following:
+	ant -f ./build/build.xml
+
+The default target will compile the code, package the .apk file, and install it on your device.
