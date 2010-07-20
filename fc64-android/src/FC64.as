@@ -31,15 +31,14 @@ package
 	import flash.display.Screen;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
-	import flash.display.StageDisplayState;
 	import flash.display.StageOrientation;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	import flash.events.StageOrientationEvent;
 	import flash.geom.Rectangle;
-	import flash.text.TextField;
 	import flash.ui.Keyboard;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
@@ -69,12 +68,28 @@ package
 		 */
 		private static const VIRTUAL_KEY_DELAY_THRESHOLD:int = 10;
 		
-		
 		// FIXME: Remove this and let the user select roms from SD card
 		[Embed( source="/assets/roms/COLOURGALAGA.PRG", mimeType="application/octet-stream" )]
 		public static const GALAGA_COLOR:Class;
 		
+		/**
+		 * Flag indicating if a rom is currently loaded.  Used to determine
+		 * what the back key does.
+		 */
 		private var romLoaded:Boolean = false;
+		
+		/**
+		 * Capture the time of a keyDown event so we can measure how soon
+		 * the corresponding keyUp comes to differentiate between a keypress
+		 * on the virtual keyboard and the trackball press.
+		 */
+		protected var keyDownTime:int;
+		
+		/**
+		 * Flag indicating if we should scale the renderer to fit the screen
+		 * or leave it at it's native width/height.
+		 */
+		protected var scaleToFit:Boolean = true;
 		
 		/**
 		 *
@@ -106,8 +121,7 @@ package
 		 */
 		private function init():void
 		{	
-			// Pass the native application through as the keyboard listener
-			fc64 = new FC64Sprite( NativeApplication.nativeApplication /* fpsDisplay */ );
+			fc64 = new FC64Sprite();
 			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
 			fc64.addEventListener( FrameRateInfoEvent.FRAME_RATE_INFO, onFrameRateInfo );
 			fc64.addEventListener( DebuggerEvent.STOP, onStop );
@@ -119,8 +133,13 @@ package
 			// Listen for orientation changes
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
+			
+			// TODO: Probably don't need both orientation change AND resize change - 
+			// resize is probably enough and we can test width > height for orientation
+			// or try using stage.deviceOrientation
 			stage.addEventListener( StageOrientationEvent.ORIENTATION_CHANGE, onOrientationChange );
 			stage.addEventListener( Event.RESIZE, onResizeChange );
+			stage.addEventListener( MouseEvent.CLICK, onClick );
 			
 			// Start renderer
 			fc64.renderer.start();
@@ -202,6 +221,14 @@ package
 		 */
 		private function onResizeChange( event:Event ):void
 		{
+			updateDisplay();
+		}
+		
+		/**
+		 *
+		 */
+		private function updateDisplay():void
+		{
 			if ( isPortrait )
 			{
 				alignPortrait();
@@ -218,13 +245,26 @@ package
 		private function alignLandscape():void
 		{
 			var screenBounds:Rectangle = Screen.mainScreen.bounds;
-			//var deviceWidth:int = screenBounds.width;
+			var deviceWidth:int = screenBounds.width;
 			var deviceHeight:int = screenBounds.height;
 			
-			// Scale FC64 to match the height
 			fc64.scaleX = fc64.scaleY = 1;
-			var newScale:Number = deviceHeight / fc64.height;
-			fc64.scaleX = fc64.scaleY = newScale;
+			
+			// Scale FC64 to match the height
+			if ( scaleToFit )
+			{
+				var newScale:Number = deviceHeight / fc64.height;
+				fc64.scaleX = fc64.scaleY = newScale;
+				fc64.y = 0;
+			}
+			else
+			{
+				// Center height
+				fc64.y = ( deviceHeight - fc64.height ) / 2; 
+			}
+			
+			// Center width
+			fc64.x = ( deviceWidth - fc64.width ) / 2;
 		}
 		
 		/**
@@ -236,13 +276,33 @@ package
 			var deviceWidth:int = screenBounds.width;
 			//var deviceHeight:int = screenBounds.height;
 			
-			// Scale FC64 to match the width
 			fc64.scaleX = fc64.scaleY = 1;
-			var newScale:Number = deviceWidth / fc64.width;
-			fc64.scaleX = fc64.scaleY = newScale;
+			
+			// Scale FC64 to match the width
+			if ( scaleToFit )
+			{
+				var newScale:Number = deviceWidth / fc64.width;
+				fc64.scaleX = fc64.scaleY = newScale;
+				fc64.x = 0;
+			}
+			else
+			{
+				// Center width
+				fc64.x = ( deviceWidth - fc64.width ) / 2;
+			}
+			
+			fc64.y = 0;
 		}
 		
-		protected var keyDownTime:int;
+		/**
+		 * Change whether or not we scale the renderer.
+		 */
+		private function onClick( event:MouseEvent ):void
+		{
+			scaleToFit = !scaleToFit;
+			
+			updateDisplay();
+		}
 		
 		/**
 		 *

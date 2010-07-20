@@ -63,7 +63,7 @@ package components
 		/**
 		 * Constructor
 		 */
-		public function FC64Sprite( keyboardListenerTarget:EventDispatcher = null )
+		public function FC64Sprite()
 		{
 			super();
 			
