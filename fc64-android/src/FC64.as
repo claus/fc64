@@ -1,3 +1,23 @@
+/*
+ * Copyright notice
+ *
+ * (c) 2005-2010 Darron Schall, Claus Wahlers.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package
 {
 	import c64.events.DebuggerEvent;
@@ -34,8 +54,6 @@ package
 	public class FC64 extends Sprite
 	{
 		private var fc64:FC64Sprite;
-		
-		private var fpsDisplay:TextField;
 		
 		/**
 		 * The amount of time (in ms) to wait before we similate a press and
@@ -81,19 +99,13 @@ package
 			NativeApplication.nativeApplication.addEventListener( Event.DEACTIVATE, onDeactivate );
 			
 			init();
-		
-			//stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
 		}
 		
 		/**
 		 *
 		 */
 		private function init():void
-		{
-			// Create text field for fps display
-			fpsDisplay = new TextField();
-			addChild( fpsDisplay );
-			
+		{	
 			// Pass the native application through as the keyboard listener
 			fc64 = new FC64Sprite( NativeApplication.nativeApplication /* fpsDisplay */ );
 			fc64.addEventListener( CPUResetEvent.CPU_RESET, onCPUReset );
@@ -155,6 +167,8 @@ package
 		{
 //			fc64.renderer.stop();
 			
+			// Close the application when sent to the background
+			// FIXME: This probably isn't the desired action
 			NativeApplication.nativeApplication.exit();
 		}
 		
@@ -211,12 +225,6 @@ package
 			fc64.scaleX = fc64.scaleY = 1;
 			var newScale:Number = deviceHeight / fc64.height;
 			fc64.scaleX = fc64.scaleY = newScale;
-			
-			// Move the fps text to the right of the renderer
-			fpsDisplay.x = fc64.x + fc64.width;
-			fpsDisplay.y = 0;
-			fpsDisplay.width = 60;
-			fpsDisplay.height = deviceHeight;
 		}
 		
 		/**
@@ -232,12 +240,6 @@ package
 			fc64.scaleX = fc64.scaleY = 1;
 			var newScale:Number = deviceWidth / fc64.width;
 			fc64.scaleX = fc64.scaleY = newScale;
-			
-			// Move the fps text under the renderer
-			fpsDisplay.x = 0;
-			fpsDisplay.y = fc64.y + fc64.height;
-			fpsDisplay.width = deviceWidth;
-			fpsDisplay.height = 60;
 		}
 		
 		protected var keyDownTime:int;
@@ -270,9 +272,6 @@ package
 					
 					romLoaded = true;
 				}
-				
-				
-				
 			}
 			else if ( keyCode == Keyboard.MENU )
 			{
